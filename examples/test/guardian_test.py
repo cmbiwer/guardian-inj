@@ -2,7 +2,7 @@
 
 import logging
 from ezca import Ezca
-from guardian import GuardState
+from guardian import GuardState, NodeManager
 from inspect import currentframe
 from time import sleep
 
@@ -100,3 +100,4 @@ while True:
     status = state.run()
     if status not in [None, False]:
         break
+
