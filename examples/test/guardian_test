@@ -2,8 +2,9 @@
 
 import logging
 from ezca import Ezca
-from guardian import GuardState
+from guardian import GuardState, GuardStateDecorator
 from inspect import currentframe
+from time import sleep
 
 # name of the model
 prefix = 'CAL-INJ'
@@ -38,6 +39,14 @@ class STATE1(GuardState):
         class_name = type(self).__name__
         func_name = currentframe().f_code.co_name
         logging.info('Executing method %s.%s', class_name, func_name)
+
+        # wait
+        wait_time = 2
+        timer_name = 'timer_wait'
+        logging.info('Wil wait %d seconds', wait_time)
+        self.timer[timer_name] = wait_time
+        while not self.timer[timer_name]:
+            pass
 
         # read an EPICS channel
         ezca = Ezca(prefix)
