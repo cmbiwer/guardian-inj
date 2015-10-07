@@ -1,5 +1,6 @@
 import logging
 from ezca import Ezca
+from gpstime import gpstime
 from guardian import GuardState
 from time import sleep
 
@@ -7,7 +8,10 @@ from time import sleep
 prefix = 'CAL-INJ'
 
 # seconds to sleep after an operation
-sleep_seconds = 2
+sleep_time = 2
+
+# seconds to check for electromagnetic alert
+exttrig_wait_time = 300
 
 class INIT(GuardState):
 
@@ -22,9 +26,6 @@ class INIT(GuardState):
 
         # print statement
         print 'INIT'
-
-        # sleep
-        sleep(sleep_seconds)
 
         return 'DISABLED'
 
@@ -42,14 +43,27 @@ class DISABLED(GuardState):
         ''' Execute method in a loop.
         '''
 
-        # check if injections disabled or an electromagnetic alert
+        # setup EPICS reading and writing
         ezca = Ezca(prefix)
-        epics_str = 'TINJ_ENABLE'
-        epics_val = ezca.read(epics_str)
-        print 'The value of %s is %f'%(ezca.prefix+epics_str, epics_val)
 
-        # sleep
-        sleep(sleep_seconds)
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert('now').gps()
+
+        # check if injections enabled
+        tinj_enable = ezca.read('TINJ_ENABLE')
+        print 'The value of %s is %f'%(ezca.prefix+'TINJ_ENABLE', tinj_enable)
+
+        # check if electromagnetic alert
+        exttrig_alert_time = ezca.read('EXTTRIG_ALERT_TIME')
+        print 'The value of %s is %f'%(ezca.prefix+'EXTTRIG_ALERT_TIME', exttrig_alert_time)
+
+        # if injections enabled and no electromangetic alert go to IDLE state
+        if tinj_enable and current_gps_time - exttrig_alert_time > exttrig_wait_time:
+            return 'IDLE'
+
+        # else sleep
+        else:
+            sleep(sleep_time)
 
 class IDLE(GuardState):
 
@@ -61,7 +75,12 @@ class IDLE(GuardState):
     def run(self):
         ''' Execute method in a loop.
         '''
-        pass
+
+        # print statement
+        print 'IDLE'
+
+        # sleep
+        sleep(sleep_time)
 
 class CBC(GuardState):
 
