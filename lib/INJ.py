@@ -14,6 +14,8 @@ sleep_time = 2
 exttrig_wait_time = 300
 
 class INIT(GuardState):
+    ''' State that is first entered when starting Guardian daemon.
+    '''
 
     def main(self):
         ''' Executate method once.
@@ -30,6 +32,9 @@ class INIT(GuardState):
         return 'DISABLED'
 
 class DISABLED(GuardState):
+    ''' State for when injections are disabled. Either manually
+    or from an electromagnetic alert.
+    '''
 
     # automatically assign edges from every other state
     goto = True
@@ -66,6 +71,10 @@ class DISABLED(GuardState):
             sleep(sleep_time)
 
 class IDLE(GuardState):
+    ''' State when the schedule is continously checked for injections.
+    If an injection is imminent then the state will change to that
+    injection type.
+    '''
 
     def main(self):
         ''' Executate method once.
@@ -83,6 +92,8 @@ class IDLE(GuardState):
         sleep(sleep_time)
 
 class CBC(GuardState):
+    ''' State for performing a CBC injection.
+    '''
 
     def main(self):
         ''' Executate method once.
@@ -95,5 +106,5 @@ class CBC(GuardState):
         pass
 
 # initialize log
-logging_level = logging.WARN
-logging.basicConfig(file='INJ.log', format='%(asctime)s : %(message)s', level=logging_level)
+#logging_level = logging.WARN
+#logging.basicConfig(file='INJ.log', format='%(asctime)s : %(message)s', level=logging_level)
