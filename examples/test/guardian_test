@@ -1,0 +1,53 @@
+#! /usr/bin/python
+
+from guardian import GuardState, logging
+
+prefix = 'CAL-INJ'
+
+class SAFE(GuardState):
+
+    def main(self):
+        ''' Executate method once.
+        '''
+        pass
+
+    def run(self):
+        ''' Execute method in a loop.
+        '''
+        pass
+
+class STATE1(GuardState):
+
+    def main(self):
+        ''' Executate method once.
+        '''
+        pass
+
+    def run(self):
+        ''' Execute method in a loop.
+        '''
+        pass
+
+class STATE2(GuardState):
+
+    def main(self):
+        ''' Executate method once.
+        '''
+        pass
+
+    def run(self):
+        ''' Execute method in a loop.
+        '''
+        pass
+
+# initialize state object
+state = STATE1()
+
+# execute main method
+state.main()
+
+# execute run method in a loop
+while True:
+    status = state.run()
+    if status not in [None, False]:
+        break
