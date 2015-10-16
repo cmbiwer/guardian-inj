@@ -40,6 +40,9 @@ ifo_list = ['H1', 'L1']
 # setup log
 log = logging.getLogger('INJ')
 
+# global variable for imminent injection
+imminent_inj = None
+
 ##################################################
 # STATES
 ##################################################
@@ -70,8 +73,8 @@ class DISABLED(GuardState):
         '''
 
         # if injections are enabled then move to IDLE state
-        injections_enabled = injtools.check_injections_enabled()
-        if injections_enabled:
+        inj_enabled = injtools.check_injections_enabled()
+        if inj_enabled:
             return 'IDLE'
         else:
             sleep(sleep_time)
@@ -91,19 +94,20 @@ class IDLE(GuardState):
         sleep(sleep_time)
 
         # read schedule
-        injection_list = injtools.read_schedule(path_schedule)
-        log.info('There are %d injections in the future', len(injection_list))
+        inj_list = injtools.read_schedule(path_schedule)
+        log.info('There are %d injections in the future', len(inj_list))
 
         # check if injection is imminent
-        imminent_injection = injtools.check_injections_imminent(injection_list)
-        if imminent_injection:
-            log.info('There is an imminent injection at %f', imminent_injection.scheduled_time)
+        global imminent_inj
+        imminent_inj = injtools.check_injections_imminent(inj_list)
+        if imminent_inj:
+            log.info('There is an imminent injection at %f', imminent_inj.scheduled_time)
         else:
             log.info('There is no imminent injection')
 
         # if injections are disabled then move to DISABLED state
-        injections_enabled = injtools.check_injections_enabled()
-        if not injections_enabled: 
+        inj_enabled = injtools.check_injections_enabled()
+        if not inj_enabled: 
             log.info('Injections have been disabled')
             return 'DISABLED'
 
@@ -112,7 +116,7 @@ class IDLE(GuardState):
         if not detector_enabled:
             log.info('Detector is not in observation mode')
         else:
-            return imminent_injection.injection_type
+            return imminent_inj.injection_type
 
 class CBC(GuardState):
     ''' State for performing a CBC injection.
@@ -121,29 +125,16 @@ class CBC(GuardState):
     def main(self):
         ''' Executate method once.
         '''
-        # read schedule
-
-        # print information about injections (total num, future inj)
-
-        # check if injection is imminent
-
-        # print if injection is imminent
-
-        # get full path to injection file
-
-        # get injection type
-
-        # if injections enabled and no electromangetic alert go to DISABLED state
-
-        # if detector is locked and intent bit is on then continue
 
         # upload GraceDB hardware injection event
+        injupload.upload_gracedb_event(imminent_inj)
 
         # call awgstream
+        injtools.make_external_call()
 
         # check that awgstream completed
 
-        pass
+        return 'IDLE'
 
 ##################################################
 # EDGES

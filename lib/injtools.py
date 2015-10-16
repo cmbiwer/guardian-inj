@@ -37,17 +37,17 @@ class ContentHandler(ligolw.LIGOLWContentHandler):
 class InjectionList(list):
 
     def __init__(self):
-        self.imminient_injection = None
+        self.imminient_inj = None
 
 class Injection(object):
     ''' A class representing a single injection.
     '''
 
-    def __init__(self, scheduled_time, injection_type,
+    def __init__(self, scheduled_time, inj_type,
                      scale_factor, path):
 
         self.scheduled_time = float(scheduled_time)
-        self.injection_type = injection_type
+        self.inj_type = inj_type
         self.scale_factor = float(scale_factor)
         self.path = path
 
@@ -65,7 +65,7 @@ def read_schedule(path_schedule):
     '''
 
     # initialize empty list to store injections
-    injection_list = []
+    inj_list = []
 
     # get the current GPS time
     current_gps_time = gpstime.tconvert('now').gps()
@@ -74,14 +74,14 @@ def read_schedule(path_schedule):
     with open(path_schedule, 'rb') as fp:
         lines = fp.readlines()
         for line in lines:
-            scheduled_time, injection_type, scale_factor, path = line.split()
-            injection = Injection(scheduled_time, injection_type, scale_factor, path)
+            scheduled_time, inj_type, scale_factor, path = line.split()
+            inj = Injection(scheduled_time, inj_type, scale_factor, path)
 
             # add injection to list if its in the future
-            if injection.scheduled_time-current_gps_time > 0:
-                injection_list.append(injection)
+            if inj.scheduled_time-current_gps_time > 0:
+                inj_list.append(inj)
 
-    return injection_list
+    return inj_list
 
 def check_injections_enabled():
     ''' Check that injections are enabled.
@@ -106,7 +106,7 @@ def check_injections_enabled():
     else:
         return False
 
-def check_injections_imminent(injection_list):
+def check_injections_imminent(inj_list):
     ''' Check for an imminent injection.
     '''
 
@@ -114,14 +114,14 @@ def check_injections_imminent(injection_list):
     current_gps_time = gpstime.tconvert('now').gps()
 
     # find most imminent injection
-    if len(injection_list):
-        imminent_injection = min(injection_list, key=lambda x: x.scheduled_time-current_gps_time)
+    if len(inj_list):
+        imminent_inj = min(inj_list, key=lambda x: x.scheduled_time-current_gps_time)
     else:
         return None
 
     # if most imminent injection is within time to call awgstream then return that injection
-    if imminent_injection.scheduled_time-current_gps_time > awgstream_time:
-        return imminent_injection
+    if imminent_inj.scheduled_time-current_gps_time > awgstream_time:
+        return imminent_inj
     else:
         return None
 
@@ -135,7 +135,7 @@ def check_filterbank_status():
     '''
     pass
 
-def external_call():
+def make_external_call():
     ''' Make an external call on the command line.
     '''
     pass

@@ -16,7 +16,7 @@ from glue.ligolw import ligolw, lsctables, table, utils
 # FUNCTIONS
 ##################################################
 
-def upload_gracedb_event(injection):
+def upload_gracedb_event(inj):
     ''' Uploads an event to GraceDB.
     '''
 
@@ -24,7 +24,7 @@ def upload_gracedb_event(injection):
     client = gracedb_rest.GraceDb()
 
     # read XML file
-    inspiral_xml = utils.load_filename(injection.path,
+    inspiral_xml = utils.load_filename(inj.path,
         contenthandler=ContentHandler)
 
     # get first sim inspiral row
@@ -33,19 +33,19 @@ def upload_gracedb_event(injection):
     sim = sim_table[0]
 
     # check if times need to be changed in XML file
-    if injection.scheduled_time:
+    if inj.scheduled_time:
 
         # get geocentric end time
-        dt = sim.geocentric_end_time - injection.scheduled_time
-        sim.gencentric_end_time = injection.scheduled_time + dt
+        dt = sim.geocentric_end_time - inj.scheduled_time
+        sim.gencentric_end_time = inj.scheduled_time + dt
 
         # get H1 end time
-        dt = sim.h_end_time - injection.scheduled_time
-        sim.h_end_time = injection.scheduled_time + dt
+        dt = sim.h_end_time - inj.scheduled_time
+        sim.h_end_time = inj.scheduled_time + dt
 
         # get L1 end time
-        dt = sim.l_end_time - injection.scheduled_time
-        sim.l_end_time = injection.scheduled_time + dt
+        dt = sim.l_end_time - inj.scheduled_time
+        sim.l_end_time = inj.scheduled_time + dt
 
     # get XML content as a str
     fp = tempfile.NamedTemporaryFile()
@@ -56,10 +56,10 @@ def upload_gracedb_event(injection):
     # loop over IFOs
     for ifo in ifo_list:
 
-        # get GraceDB inputs for injection type
+        # get GraceDB inputs for inj type
         group = 'Test'
         pipeline = 'HardwareInjection'
-        filename = injection.path
+        filename = inj.path
 
         # upload event to GraceDB
         out = client.createEvent(group, pipeline, filename,
