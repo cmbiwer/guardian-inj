@@ -10,10 +10,15 @@ This defines the behavior for all transient injections.
 # IMPORTS
 ##################################################
 
+# cannot use glue module yet
+
 import logging
+import ligo.gracedb.rest as gracedb_rest
 from ezca import Ezca
+from glue.ligolw import ligolw, lsctables, table, utils
 from gpstime import gpstime
 from guardian import GuardState
+from os.path import basename
 from time import sleep
 
 ##################################################
@@ -34,6 +39,9 @@ path_schedule = '/ligo/home/christopher.biwer/src/fake_schedule'
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
+
+# list of IFOs
+ifo_list = ['H1', 'L1']
 
 ##################################################
 # FUNCTIONS
@@ -95,7 +103,10 @@ def check_injections_imminent(injection_list):
     '''
 
     # find most imminent injection
-    imminent_injection = min(injection_list, key=lambda x: x.scheduled_time-current_gps_time)
+    if len(injection_list):
+        imminent_injection = min(injection_list, key=lambda x: x.scheduled_time-current_gps_time)
+    else:
+        return None
 
     # if most imminent injection is within time to call awgstream then return that injection
     if imminent_injection.scheduled_time-current_gps_time > awgstream_time:
@@ -113,10 +124,71 @@ def check_filterbank_status():
     '''
     pass
 
-def upload_gracedb_event():
-    ''' Uploads an event to GraceDB.
+def validate_xml_file():
+    ''' Validate formatting of LIGOLW XML file.
     '''
     pass
+
+def upload_gracedb_event(injection):
+    ''' Uploads an event to GraceDB.
+    '''
+
+    # begin GraceDB API
+    client = gracedb_rest.GraceDb()
+
+    # read XML file
+    inspiral_xml = utils.load_filename(injection.path,
+        contenthandler=ContentHandler)
+
+    # get first sim inspiral row
+    sim_table = table.get_table(inspiral_xml,
+        lsctables.SimInspiralTable.tableName)
+    sim = sim_table[0]
+
+    # check if times need to be changed in XML file
+    if injection.scheduled_time:
+
+        # get geocentric end time
+        dt = sim.geocentric_end_time - injection.scheduled_time
+        sim.gencentric_end_time = injection.scheduled_time + dt
+
+        # get H1 end time
+        dt = sim.h_end_time - injection.scheduled_time
+        sim.h_end_time = injection.scheduled_time + dt
+
+        # get L1 end time
+        dt = sim.l_end_time - injection.scheduled_time
+        sim.l_end_time = injection.scheduled_time + dt
+
+    # get XML content as a str
+    fp = tempfile.NamedTemporaryFile()
+    xmldoc.write(fp)
+    filecontents = fp.seek(0).read()
+    fp.close()
+
+    # loop over IFOs
+    for ifo in ifo_list:
+
+        # get GraceDB inputs for injection type
+        group = 'Test'
+        pipeline = 'HardwareInjection'
+        filename = injection.path
+
+        # upload event to GraceDB
+        out = client.createEvent(group, pipeline, filename,
+            filecontents=filecontents, insturment=ifo,
+            source_channel='', destination_channel='')
+        graceid = out.json()['graceid']
+
+        # add URL to waveform and parameter files
+        waveform_url = 'FIXME'
+        parameter_url = basename(filename)
+        message  = ''
+        message += '<a href='+waveform_url+'>waveform file</a>'
+        message += '<br>'
+        message += '<a href='+parameter_url+'>original XML parameter file</a>'
+        out2 = client.writeLog(graceid, message, tagname='analyst comments')
+
 
 def external_call():
     ''' Make an external call on the command line.
@@ -130,7 +202,7 @@ def external_call():
 class InjectionList(list):
 
     def __init__(self):
-        pass
+        self.imminient_injection = None
 
 class Injection(object):
     ''' A class representing a single injection.
@@ -162,6 +234,11 @@ class INIT(GuardState):
 
         # setup EPICS reading and writing
         ezca = Ezca(prefix)
+
+        # setup content handler for LIGOLW XML
+        @lsctables.use_in
+        class ContentHandler(ligolw.LIGOLWContentHandler):
+            pass
 
         return 'DISABLED'
 
