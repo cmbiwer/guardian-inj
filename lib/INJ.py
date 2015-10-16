@@ -10,16 +10,11 @@ This defines the behavior for all transient injections.
 # IMPORTS
 ##################################################
 
-# cannot use glue module yet
-
 import injtools
-import logging
+import injupload
 import ligo.gracedb.rest as gracedb_rest
 from ezca import Ezca
-from gpstime import gpstime
 from guardian import GuardState
-from injupload import upload_gracedb_event
-from os.path import basename
 from time import sleep
 
 ##################################################
