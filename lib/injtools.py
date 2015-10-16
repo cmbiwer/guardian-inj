@@ -90,6 +90,9 @@ def check_injections_imminent(injection_list):
     ''' Check for an imminent injection.
     '''
 
+    # get the current GPS time
+    current_gps_time = gpstime.tconvert('now').gps()
+
     # find most imminent injection
     if len(injection_list):
         imminent_injection = min(injection_list, key=lambda x: x.scheduled_time-current_gps_time)

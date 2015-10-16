@@ -27,8 +27,8 @@ prefix = 'CAL-INJ'
 # seconds to sleep after an operation
 sleep_time = 2
 
-# full path to schedule file
-path_schedule = '/ligo/home/christopher.biwer/src/fake_schedule'
+# path to schedule file
+path_schedule = 'fake_schedule'
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
