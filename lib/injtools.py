@@ -33,12 +33,13 @@ class Injection(object):
     '''
 
     def __init__(self, scheduled_time, inj_type,
-                     scale_factor, path):
+                 scale_factor, waveform_path, metadata_path):
 
         self.scheduled_time = float(scheduled_time)
         self.inj_type = inj_type
         self.scale_factor = float(scale_factor)
-        self.path = path
+        self.waveform_path = waveform_path
+        self.metadata_path = metadata_path
 
 ##################################################
 # FUNCTIONS
@@ -49,7 +50,7 @@ def validate_schedule():
     '''
     pass
 
-def read_schedule(path_schedule):
+def read_schedule(schedule_path):
     ''' Parses schedule and returns rows.
     '''
 
@@ -60,11 +61,11 @@ def read_schedule(path_schedule):
     current_gps_time = gpstime.tconvert('now').gps()
 
     # open schedule file and add the injections to the list
-    with open(path_schedule, 'rb') as fp:
+    with open(schedule_path, 'rb') as fp:
         lines = fp.readlines()
         for line in lines:
-            scheduled_time, inj_type, scale_factor, path = line.split()
-            inj = Injection(scheduled_time, inj_type, scale_factor, path)
+            scheduled_time, inj_type, scale_factor, waveform_path, metadata_path = line.split()
+            inj = Injection(scheduled_time, inj_type, scale_factor, waveform_path, metadata_path)
 
             # add injection to list if its in the future
             if inj.scheduled_time-current_gps_time > 0:

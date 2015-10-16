@@ -10,6 +10,7 @@ This defines how to upload injections to GraceDB.
 # IMPORTS
 ##################################################
 
+import tempfile
 import ligo.gracedb.rest as gracedb_rest
 from glue.ligolw import ligolw, lsctables, table, utils
 
@@ -30,12 +31,11 @@ def upload_gracedb_event(inj):
     client = gracedb_rest.GraceDb()
 
     # read XML file
-    print inj.path
-    inspiral_xml = utils.load_filename(inj.path,
+    xmldoc = utils.load_filename(inj.metadata_path,
         contenthandler=ContentHandler)
 
     # get first sim inspiral row
-    sim_table = table.get_table(inspiral_xml,
+    sim_table = table.get_table(xmldoc,
         lsctables.SimInspiralTable.tableName)
     sim = sim_table[0]
 
@@ -43,8 +43,8 @@ def upload_gracedb_event(inj):
     if inj.scheduled_time:
 
         # get geocentric end time
-        dt = sim.geocentric_end_time - inj.scheduled_time
-        sim.gencentric_end_time = inj.scheduled_time + dt
+        dt = sim.geocent_end_time - inj.scheduled_time
+        sim.geocent_end_time = inj.scheduled_time + dt
 
         # get H1 end time
         dt = sim.h_end_time - inj.scheduled_time
@@ -57,29 +57,28 @@ def upload_gracedb_event(inj):
     # get XML content as a str
     fp = tempfile.NamedTemporaryFile()
     xmldoc.write(fp)
-    filecontents = fp.seek(0).read()
+    fp.seek(0)
+    filecontents = fp.read()
     fp.close()
 
-    # loop over IFOs
-    for ifo in ifo_list:
+    # get GraceDB inputs for inj type
+    group = 'Test'
+    pipeline = 'HardwareInjection'
+    filename = inj.waveform_path
+    ifo = ezca.ifo
 
-        # get GraceDB inputs for inj type
-        group = 'Test'
-        pipeline = 'HardwareInjection'
-        filename = inj.path
+    # upload event to GraceDB
+    out = client.createEvent(group, pipeline, filename,
+        filecontents=filecontents, insturment=ifo,
+        source_channel='', destination_channel='')
+    graceid = out.json()['graceid']
 
-        # upload event to GraceDB
-        out = client.createEvent(group, pipeline, filename,
-            filecontents=filecontents, insturment=ifo,
-            source_channel='', destination_channel='')
-        graceid = out.json()['graceid']
-
-        # add URL to waveform and parameter files
-        waveform_url = 'FIXME'
-        parameter_url = basename(filename)
-        message  = ''
-        message += '<a href='+waveform_url+'>waveform file</a>'
-        message += '<br>'
-        message += '<a href='+parameter_url+'>original XML parameter file</a>'
-        out2 = client.writeLog(graceid, message, tagname='analyst comments')
+    # add URL to waveform and parameter files
+    waveform_url = 'FIXME'
+    parameter_url = basename(filename)
+    message  = ''
+    message += '<a href='+waveform_url+'>waveform file</a>'
+    message += '<br>'
+    message += '<a href='+parameter_url+'>original XML parameter file</a>'
+    out2 = client.writeLog(graceid, message, tagname='analyst comments')
 

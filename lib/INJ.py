@@ -29,13 +29,10 @@ prefix = 'CAL-INJ'
 sleep_time = 20
 
 # path to schedule file
-path_schedule = 'fake_schedule'
+schedule_path = 'fake_schedule'
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
-
-# list of IFOs
-ifo_list = ['H1', 'L1']
 
 # setup log
 log = logging.getLogger('INJ')
@@ -100,7 +97,7 @@ class IDLE(GuardState):
         log.info('The time is %d', current_gps_time)
 
         # read schedule
-        inj_list = injtools.read_schedule(path_schedule)
+        inj_list = injtools.read_schedule(schedule_path)
         log.info('There are %d injections in the future', len(inj_list))
 
         # check if injection is imminent
@@ -145,7 +142,7 @@ class CBC(GuardState):
 
         # call awgstream
         cmd = map(str, ['awgstream', exc_channel, sample_rate, 
-               imminent_inj.path, imminent_inj.scale_factor])
+               imminent_inj.waveform_path, imminent_inj.scale_factor])
         injtools.make_external_call(cmd)
 
         return 'IDLE'
