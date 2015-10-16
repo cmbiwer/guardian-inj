@@ -10,7 +10,13 @@ This defines how to upload injections to GraceDB.
 # IMPORTS
 ##################################################
 
+import ligo.gracedb.rest as gracedb_rest
 from glue.ligolw import ligolw, lsctables, table, utils
+
+# setup content handler for LIGOLW XML
+@lsctables.use_in
+class ContentHandler(ligolw.LIGOLWContentHandler):
+    pass
 
 ##################################################
 # FUNCTIONS
@@ -24,6 +30,7 @@ def upload_gracedb_event(inj):
     client = gracedb_rest.GraceDb()
 
     # read XML file
+    print inj.path
     inspiral_xml = utils.load_filename(inj.path,
         contenthandler=ContentHandler)
 

@@ -12,7 +12,6 @@ injections are to be performed.
 ##################################################
 
 import logging
-from glue.ligolw import ligolw, lsctables
 from gpstime import gpstime
 
 ##################################################
@@ -28,16 +27,6 @@ log = logging.getLogger('INJ')
 ##################################################
 # CLASSES
 ##################################################
-
-# setup content handler for LIGOLW XML
-@lsctables.use_in
-class ContentHandler(ligolw.LIGOLWContentHandler):
-    pass
-
-class InjectionList(list):
-
-    def __init__(self):
-        self.imminient_inj = None
 
 class Injection(object):
     ''' A class representing a single injection.
@@ -120,7 +109,8 @@ def check_injections_imminent(inj_list):
         return None
 
     # if most imminent injection is within time to call awgstream then return that injection
-    if imminent_inj.scheduled_time-current_gps_time > awgstream_time:
+    dt = imminent_inj.scheduled_time-current_gps_time
+    if dt <= awgstream_time and dt > 0:
         return imminent_inj
     else:
         return None
@@ -128,14 +118,15 @@ def check_injections_imminent(inj_list):
 def check_detector_enabled():
     ''' Check that the detector is in observation mode.
     '''
-    pass
+
+    return True
 
 def check_filterbank_status():
     ''' Check that filterbank is ON.
     '''
     pass
 
-def make_external_call():
+def make_external_call(cmd):
     ''' Make an external call on the command line.
     '''
     pass

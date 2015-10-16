@@ -13,9 +13,9 @@ This defines the behavior for all transient injections.
 import injtools
 import injupload
 import logging
-import ligo.gracedb.rest as gracedb_rest
 from ezca import Ezca
 from guardian import GuardState
+from gpstime import gpstime
 from time import sleep
 
 ##################################################
@@ -26,7 +26,7 @@ from time import sleep
 prefix = 'CAL-INJ'
 
 # seconds to sleep after an operation
-sleep_time = 2
+sleep_time = 20
 
 # path to schedule file
 path_schedule = 'fake_schedule'
@@ -72,12 +72,18 @@ class DISABLED(GuardState):
         ''' Execute method in a loop.
         '''
 
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert('now').gps()
+        log.info('The time is %d', current_gps_time)
+
         # if injections are enabled then move to IDLE state
         inj_enabled = injtools.check_injections_enabled()
         if inj_enabled:
             return 'IDLE'
-        else:
-            sleep(sleep_time)
+
+        # wait some set amount of time
+        log.info('Will now sleep %d seconds\n', sleep_time)
+        sleep(sleep_time)
 
 class IDLE(GuardState):
     ''' State when the schedule is continously checked for injections.
@@ -89,9 +95,9 @@ class IDLE(GuardState):
         ''' Execute method in a loop.
         '''
 
-        # wait some set amount of time
-        log.info('Entering idle loop and waiting %d seconds', sleep_time)
-        sleep(sleep_time)
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert('now').gps()
+        log.info('The time is %d', current_gps_time)
 
         # read schedule
         inj_list = injtools.read_schedule(path_schedule)
@@ -100,23 +106,31 @@ class IDLE(GuardState):
         # check if injection is imminent
         global imminent_inj
         imminent_inj = injtools.check_injections_imminent(inj_list)
-        if imminent_inj:
-            log.info('There is an imminent injection at %f', imminent_inj.scheduled_time)
-        else:
-            log.info('There is no imminent injection')
 
         # if injections are disabled then move to DISABLED state
         inj_enabled = injtools.check_injections_enabled()
-        if not inj_enabled: 
+        if not inj_enabled:
             log.info('Injections have been disabled')
             return 'DISABLED'
 
-        # if detector is in observation mode then change to injection-type state
-        detector_enabled = injtools.check_detector_enabled()
-        if not detector_enabled:
-            log.info('Detector is not in observation mode')
+        # if there is an imminent injection then check if observing
+        if imminent_inj:
+            log.info('There is an imminent injection at %f', imminent_inj.scheduled_time)
+            detector_enabled = injtools.check_detector_enabled()
+
+            # if detector is in observation mode then change to injection-type state
+            if detector_enabled:
+                return imminent_inj.inj_type
+            else:
+                log.info('Detector is not in observation mode')
+
+        # else there is no imminent injection continue
         else:
-            return imminent_inj.injection_type
+            log.info('There is no imminent injection')
+
+        # wait some set amount of time
+        log.info('Will now sleep %d seconds\n', sleep_time)
+        sleep(sleep_time)
 
 class CBC(GuardState):
     ''' State for performing a CBC injection.
@@ -130,9 +144,9 @@ class CBC(GuardState):
         injupload.upload_gracedb_event(imminent_inj)
 
         # call awgstream
-        injtools.make_external_call()
-
-        # check that awgstream completed
+        cmd = map(str, ['awgstream', exc_channel, sample_rate, 
+               imminent_inj.path, imminent_inj.scale_factor])
+        injtools.make_external_call(cmd)
 
         return 'IDLE'
 
