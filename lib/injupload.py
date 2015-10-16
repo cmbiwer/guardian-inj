@@ -20,6 +20,13 @@ class ContentHandler(ligolw.LIGOLWContentHandler):
     pass
 
 ##################################################
+# VARIABLES
+##################################################
+
+# URL to injection SVN that contains waveform files
+injection_svn_url = 'https://daqsvn.ligo-la.caltech.edu/svn/injection/hwinj/Details/'
+
+##################################################
 # FUNCTIONS
 ##################################################
 
@@ -39,20 +46,17 @@ def upload_gracedb_event(inj):
         lsctables.SimInspiralTable.tableName)
     sim = sim_table[0]
 
-    # check if times need to be changed in XML file
-    if inj.scheduled_time:
+    # get geocentric end time
+    dt = sim.geocent_end_time - inj.scheduled_time
+    sim.geocent_end_time = inj.scheduled_time + dt
 
-        # get geocentric end time
-        dt = sim.geocent_end_time - inj.scheduled_time
-        sim.geocent_end_time = inj.scheduled_time + dt
+    # get H1 end time
+    dt = sim.h_end_time - inj.scheduled_time
+    sim.h_end_time = inj.scheduled_time + dt
 
-        # get H1 end time
-        dt = sim.h_end_time - inj.scheduled_time
-        sim.h_end_time = inj.scheduled_time + dt
-
-        # get L1 end time
-        dt = sim.l_end_time - inj.scheduled_time
-        sim.l_end_time = inj.scheduled_time + dt
+    # get L1 end time
+    dt = sim.l_end_time - inj.scheduled_time
+    sim.l_end_time = inj.scheduled_time + dt
 
     # get XML content as a str
     fp = tempfile.NamedTemporaryFile()
@@ -64,7 +68,7 @@ def upload_gracedb_event(inj):
     # get GraceDB inputs for inj type
     group = 'Test'
     pipeline = 'HardwareInjection'
-    filename = inj.waveform_path
+    filename = inj.metadata_path
     ifo = ezca.ifo
 
     # upload event to GraceDB
@@ -74,11 +78,11 @@ def upload_gracedb_event(inj):
     graceid = out.json()['graceid']
 
     # add URL to waveform and parameter files
-    waveform_url = 'FIXME'
-    parameter_url = basename(filename)
+    waveform_url = injection_svn_url + '/Inspiral/' + ifo + '/' + basename(inj.waveform_path)
+    metadata_url = injection_svn_url + '/Inspiral/' + basename(inj.metadata_path)
     message  = ''
     message += '<a href='+waveform_url+'>waveform file</a>'
     message += '<br>'
-    message += '<a href='+parameter_url+'>original XML parameter file</a>'
+    message += '<a href='+metadata_url+'>original XML parameter file</a>'
     out2 = client.writeLog(graceid, message, tagname='analyst comments')
 
