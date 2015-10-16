@@ -12,6 +12,7 @@ This defines the behavior for all transient injections.
 
 import injtools
 import injupload
+import logging
 import ligo.gracedb.rest as gracedb_rest
 from ezca import Ezca
 from guardian import GuardState
@@ -36,6 +37,9 @@ sample_rate = 16384
 # list of IFOs
 ifo_list = ['H1', 'L1']
 
+# setup log
+log = logging.getLogger('INJ')
+
 ##################################################
 # STATES
 ##################################################
@@ -47,10 +51,6 @@ class INIT(GuardState):
     def main(self):
         ''' Executate method once.
         '''
-
-        # initialize log
-        #logging_level = logging.WARN
-        #logging.basicConfig(file='INJ.log', format='%(asctime)s : %(message)s', level=logging_level)
 
         # setup EPICS reading and writing
         ezca = Ezca(prefix)
@@ -87,30 +87,30 @@ class IDLE(GuardState):
         '''
 
         # wait some set amount of time
+        log.info('Entering idle loop and waiting %d seconds', sleep_time)
         sleep(sleep_time)
 
         # read schedule
         injection_list = injtools.read_schedule(path_schedule)
-        print 'There are ', len(injection_list), 'injections in the future'
+        log.info('There are %d injections in the future', len(injection_list))
 
         # check if injection is imminent
         imminent_injection = injtools.check_injections_imminent(injection_list)
         if imminent_injection:
-            print 'Injection imminent', imminent_injection.scheduled_time
+            log.info('There is an imminent injection at %f', imminent_injection.scheduled_time)
         else:
-            print 'No injection imminent' 
-            return 'IDLE'
+            log.info('There is no imminent injection')
 
         # if injections are disabled then move to DISABLED state
         injections_enabled = injtools.check_injections_enabled()
         if not injections_enabled: 
+            log.info('Injections have been disabled')
             return 'DISABLED'
 
         # if detector is in observation mode then change to injection-type state
         detector_enabled = injtools.check_detector_enabled()
         if not detector_enabled:
-            print 'Detector is not in observation mode'
-            return 'IDLE'
+            log.info('Detector is not in observation mode')
         else:
             return imminent_injection.injection_type
 

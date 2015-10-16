@@ -7,11 +7,27 @@ This defines how to read the schedule and determine if
 injections are to be performed.
 '''
 
+##################################################
+# IMPORTS
+##################################################
+
+import logging
 from glue.ligolw import ligolw, lsctables
 from gpstime import gpstime
 
+##################################################
+# VARIABLES
+##################################################
+
 # seconds before injection to call awgstream
 awgstream_time = 300
+
+# setup log
+log = logging.getLogger('INJ')
+
+##################################################
+# CLASSES
+##################################################
 
 # setup content handler for LIGOLW XML
 @lsctables.use_in
@@ -34,6 +50,10 @@ class Injection(object):
         self.injection_type = injection_type
         self.scale_factor = float(scale_factor)
         self.path = path
+
+##################################################
+# FUNCTIONS
+##################################################
 
 def validate_schedule():
     ''' Validate formatting of schedule file.
@@ -69,11 +89,11 @@ def check_injections_enabled():
 
     # check if injections enabled
     tinj_enable = ezca.read('TINJ_ENABLE')
-    print 'The value of %s is %f'%(ezca.prefix+'TINJ_ENABLE', tinj_enable)
+    log.info('The value of %s is %f', ezca.prefix+'TINJ_ENABLE', tinj_enable)
 
     # check if electromagnetic alert
     exttrig_alert_time = ezca.read('EXTTRIG_ALERT_TIME')
-    print 'The value of %s is %f'%(ezca.prefix+'EXTTRIG_ALERT_TIME', exttrig_alert_time)
+    log.info('The value of %s is %f', ezca.prefix+'EXTTRIG_ALERT_TIME', exttrig_alert_time)
 
     # get the current GPS time
     current_gps_time = gpstime.tconvert('now').gps()

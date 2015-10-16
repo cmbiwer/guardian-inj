@@ -6,7 +6,15 @@ INJ GraceDB module
 This defines how to upload injections to GraceDB.
 '''
 
+##################################################
+# IMPORTS
+##################################################
+
 from glue.ligolw import ligolw, lsctables, table, utils
+
+##################################################
+# FUNCTIONS
+##################################################
 
 def upload_gracedb_event(injection):
     ''' Uploads an event to GraceDB.
