@@ -6,9 +6,9 @@ INJ base guardian module
 This defines the behavior for all transient injections.
 '''
 
-##################################################
+###############################################################################
 # IMPORTS
-##################################################
+###############################################################################
 
 import injtools
 import injupload
@@ -18,12 +18,15 @@ from guardian import GuardState
 from gpstime import gpstime
 from time import sleep
 
-##################################################
+###############################################################################
 # VARIABLES
-##################################################
+###############################################################################
 
 # name of module
 prefix = 'CAL-INJ'
+
+# name of channel to inject transient signals
+exc_channel = prefix + '_TRANSIENT_EXC'
 
 # seconds to sleep after an operation
 sleep_time = 20
@@ -34,18 +37,23 @@ schedule_path = 'fake_schedule'
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
 
+# executable to perform hardware injections
+inj_exe = 'echo'
+
 # setup log
 log = logging.getLogger('INJ')
 
 # global variable for imminent injection
 imminent_inj = None
 
-##################################################
+###############################################################################
 # STATES
-##################################################
+###############################################################################
 
 class INIT(GuardState):
-    ''' State that is first entered when starting Guardian daemon.
+    ''' The INIT state is the first state entered when starting the Guardian
+    daemon. It will run INIT.main once and then there will be a jump transition
+    to the DISABLED state.
     '''
 
     def main(self):
@@ -58,8 +66,11 @@ class INIT(GuardState):
         return 'DISABLED'
 
 class DISABLED(GuardState):
-    ''' State for when injections are disabled either manually
-    or from an electromagnetic alert.
+    ''' The DISABLED state is for when injections have been disabled manually
+    or if there is an electromagnetic alert. The DISABLED state will loop
+    continuously checking if injections have been enabled and enough time has
+    passed since the last electromagnetic alert. If this is true, then there
+    will be a jump transition to the IDLE state.
     '''
 
     # automatically assign edges from every other state
@@ -83,9 +94,23 @@ class DISABLED(GuardState):
         sleep(sleep_time)
 
 class IDLE(GuardState):
-    ''' State when the schedule is continously checked for injections.
-    If an injection is imminent then the state will change to that
-    injection type.
+    ''' The IDLE state will loop continuously. In each loop it will start off
+    by reading the schedule and checking if there is an imminent injection.
+
+    There is a check to see if injections have been disabled. If injections
+    have been disabled then there will be a jump transition to the DISABLED
+    state.
+
+    Now there are two cases.
+
+    The first case injections are enabled and there is an imminent injection,
+    then there is a check to see if the detector is in observation mode. If
+    the detector is in observation mode then there is a jump transition to the
+    injection-type state, eg. CBC, BURST, or STOCHASTIC states. Else the
+    IDLE.run loop is repeated.
+
+    The second case there is no imminent injection and the IDLE.run loop is
+    repeated.
     '''
 
     def run(self):
@@ -130,7 +155,9 @@ class IDLE(GuardState):
         sleep(sleep_time)
 
 class CBC(GuardState):
-    ''' State for performing a CBC injection.
+    ''' The CBC state is for performing CBC hardware injections. In the CBC
+    state a hardware injection event is uploaded to GraceDB. Then an external
+    call to awgstream is used to inject the waveform into the detector.
     '''
 
     def main(self):
@@ -138,10 +165,10 @@ class CBC(GuardState):
         '''
 
         # upload GraceDB hardware injection event
-        injupload.upload_gracedb_event(imminent_inj)
+        #injupload.upload_gracedb_event(imminent_inj)
 
         # call awgstream
-        cmd = map(str, ['awgstream', exc_channel, sample_rate, 
+        cmd = map(str, [inj_exe, exc_channel, sample_rate, 
                imminent_inj.waveform_path, imminent_inj.scale_factor])
         injtools.make_external_call(cmd)
 

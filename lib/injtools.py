@@ -13,6 +13,7 @@ injections are to be performed.
 
 import logging
 from gpstime import gpstime
+from subprocess import Popen, PIPE
 
 ##################################################
 # VARIABLES
@@ -34,7 +35,6 @@ class Injection(object):
 
     def __init__(self, scheduled_time, inj_type,
                  scale_factor, waveform_path, metadata_path):
-
         self.scheduled_time = float(scheduled_time)
         self.inj_type = inj_type
         self.scale_factor = float(scale_factor)
@@ -127,8 +127,22 @@ def check_filterbank_status():
     '''
     pass
 
-def make_external_call(cmd):
+def make_external_call(cmd_list, stdout=PIPE, stderr=PIPE, shell=False):
     ''' Make an external call on the command line.
     '''
-    pass
 
+    # run command
+    cmd_list = map(str, cmd_list)
+    cmd_str = ' '.join(cmd_list)
+    log.info('Making external call: %s', cmd_str)
+    process = Popen(cmd_list, shell=shell,
+                  stdout=stdout, stderr=stderr)
+
+    # get standard output and standard error
+    stdout, stderr = process.communicate()
+
+    # if external call failed show stderr and stdout
+    if process.returncode:
+        log.debug('External call failed\n%s\n%s', stdout, stderr)
+    else:
+        log.info('External call successful')
