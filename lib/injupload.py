@@ -1,9 +1,9 @@
 # -*- mode: python; tab-width: 4; indent-tabs-mode: nil -*-
 
 '''
-INJ GraceDB module
+INJ GraceDb module
 
-This defines how to upload injections to GraceDB.
+This defines how to upload injections to GraceDb.
 '''
 
 ##################################################
@@ -31,10 +31,15 @@ injection_svn_url = 'https://daqsvn.ligo-la.caltech.edu/svn/injection/hwinj/Deta
 ##################################################
 
 def upload_gracedb_event(inj):
-    ''' Uploads an event to GraceDB.
+    ''' Uploads an event to GraceDb.
+
+    Parameters
+    ----------
+    inj: Injection
+        The Injection instance to upload to GraceDb.
     '''
 
-    # begin GraceDB API
+    # begin GraceDb API
     client = gracedb_rest.GraceDb()
 
     # read XML file
@@ -58,6 +63,9 @@ def upload_gracedb_event(inj):
     dt = sim.l_end_time - inj.scheduled_time
     sim.l_end_time = inj.scheduled_time + dt
 
+    # FIXME: add RA correction from old script
+    # get correct RA
+
     # get XML content as a str
     fp = tempfile.NamedTemporaryFile()
     xmldoc.write(fp)
@@ -65,18 +73,19 @@ def upload_gracedb_event(inj):
     filecontents = fp.read()
     fp.close()
 
-    # get GraceDB inputs for inj type
+    # get GraceDb inputs for inj type
     group = 'Test'
     pipeline = 'HardwareInjection'
     filename = inj.metadata_path
     ifo = ezca.ifo
 
-    # upload event to GraceDB
+    # upload event to GraceDb
     out = client.createEvent(group, pipeline, filename,
         filecontents=filecontents, insturment=ifo,
         source_channel='', destination_channel='')
     graceid = out.json()['graceid']
 
+    # FIXME: hardcoded CBC waveforms for development
     # add URL to waveform and parameter files
     waveform_url = injection_svn_url + '/Inspiral/' + ifo + '/' + basename(inj.waveform_path)
     metadata_url = injection_svn_url + '/Inspiral/' + basename(inj.metadata_path)

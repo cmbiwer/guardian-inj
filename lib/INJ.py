@@ -28,7 +28,7 @@ prefix = 'CAL-INJ'
 # name of channel to inject transient signals
 exc_channel = prefix + '_TRANSIENT_EXC'
 
-# seconds to sleep after an operation
+# seconds to sleep after an iteration of STATE.run
 sleep_time = 20
 
 # path to schedule file
@@ -37,6 +37,7 @@ schedule_path = 'fake_schedule'
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
 
+#FIXME: use echo for development but for production should be awgstream
 # executable to perform hardware injections
 inj_exe = 'echo'
 
@@ -83,6 +84,10 @@ class DISABLED(GuardState):
         # get the current GPS time
         current_gps_time = gpstime.tconvert('now').gps()
         log.info('The time is %d', current_gps_time)
+
+        # FIXME: off until production
+        # set injection bit to disabled
+        # ezca.write('TINJ_OUTCOME', -4)
 
         # if injections are enabled then move to IDLE state
         inj_enabled = injtools.check_injections_enabled()
@@ -135,16 +140,25 @@ class IDLE(GuardState):
             log.info('Injections have been disabled')
             return 'DISABLED'
 
-        # if there is an imminent injection then check if observing
+        # if there is an imminent injection then check if detector is observing
         if imminent_inj:
-            log.info('There is an imminent injection at %f', imminent_inj.scheduled_time)
+            log.info('There is an imminent injection at %f',
+                         imminent_inj.scheduled_time)
             detector_enabled = injtools.check_detector_enabled()
 
-            # if detector is in observation mode then change to injection-type state
+            # if detector is in observation mode then change to
+            # injection-type state, eg. CBC, BURST, or STOCHASTIC
             if detector_enabled:
                 return imminent_inj.inj_type
+
+            # else continue in IDLE.run and do not perform injection
             else:
-                log.info('Detector is not in observation mode')
+                log.info('Will not perform injection because detector is' + \
+                         'not in observation mode')
+
+                # FIXME: off until production
+                # set injection bit to not in observation mode
+                # ezca.write('TINJ_OUTCOME', -6)
 
         # else there is no imminent injection continue
         else:
@@ -164,13 +178,43 @@ class CBC(GuardState):
         ''' Executate method once.
         '''
 
+        # FIXME: grid utils not on control room workspaces
         # upload GraceDB hardware injection event
         #injupload.upload_gracedb_event(imminent_inj)
 
+        # FIXME: off until production
+        # set EPICs records for injection type and time
+        # ezca.write('TINJ_TYPE', 1)
+        # ezca.write('TINJ_START', imminent_inj.scheduled_time)
+        # ezca.write('TINJ_END', 0)
+
+        # FIXME: off until production
+        # set injection bit to streaming
+        # ezca.write('TINJ_OUTCOME', 2)
+
         # call awgstream
+        log.info('Calling external command to perform injection')
         cmd = map(str, [inj_exe, exc_channel, sample_rate, 
                imminent_inj.waveform_path, imminent_inj.scale_factor])
-        injtools.make_external_call(cmd)
+        retcode = injtools.make_external_call(cmd)
+
+        # FIXME: off until production
+        # set injection bit to failure or successful
+        # if retcode:
+            # ezca.write('TINJ_OUTCOME', -4)
+        # else:
+            # ezca.write('TINJ_OUTCOME', 1)
+
+        # FIXME: off until production
+        # set end time of injection
+        current_gps_time = gpstime.tconvert('now').gps()
+        # ezca.write('TINJ_END', current_gps_time)
+
+        # FIXME: set to 300 seconds because using echo as inj_exe
+        # wait some set amount of time
+        postinj_time = 300
+        log.info('Will now sleep %d seconds\n', postinj_time)
+        sleep(postinj_time)
 
         return 'IDLE'
 
