@@ -107,9 +107,9 @@ def check_injections_enabled():
         ezca.prefix+'TINJ_ENABLE', tinj_enable)
 
     # check if injections paused
-    tinj_enable = ezca.read('TINJ_ENABLE')
+    tinj_enable = ezca.read('TINJ_PAUSE')
     log.info('The value of %s is %f',
-        ezca.prefix+'TINJ_ENABLE', tinj_enable)
+        ezca.prefix+'TINJ_PAUSE', tinj_enable)
 
     # check if electromagnetic alert
     exttrig_alert_time = ezca.read('EXTTRIG_ALERT_TIME')
