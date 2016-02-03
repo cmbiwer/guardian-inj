@@ -21,7 +21,10 @@ exttrig_channel_name = model_name + "_EXTTRIG_ALERT_TIME"
 exttrig_wait_time = 3600
 
 # seconds to check for an imminent hardware injection
-imminent_wait_time = 60
+imminent_wait_time = 600
+
+# seconds in advance to call awgstream
+awgstream_wait_time = 30
 
 # path to schedule file
 schedule_path = "fake_schedule"
@@ -106,9 +109,63 @@ class EXTTRIG_ALERT(GuardState):
         if not exttrig_alert_time:
             return "ENABLED"
 
+class PREP(GuardState):
+    """ None.
+    """
+
+    def main(self):
+        """ None.
+        """
+
+        # upload hardware injection to gracedb
+
+        return
+
+    def run(self):
+        """ None.
+        """
+
+        return
+
+class CBC(GuardState):
+    """ None.
+    """
+
+    def main(self):
+        """ None.
+        """
+
+        # call awgstream
+
+        return
+
+class POST_SUCCESS(GuardState):
+    """ None.
+    """
+
+    def main(self):
+        """ None.
+        """
+
+        return
+
+class POST_FAILURE(GuardState):
+    """ None.
+    """
+
+    def main(self):
+        """ None.
+        """
+
+        return
+
 # define directed edges that connect guardian states
 edges = (
     ("ENABLED", "IDLE"),
+    ("IDLE", "PRE"),
+    ("PREP", "CBC"),
+    ("CBC", "POST_SUCCESS"),
+    ("CBC", "POST_FAILURE"),
 )
 
 
