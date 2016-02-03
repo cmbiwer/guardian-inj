@@ -7,6 +7,7 @@ This module provides functions for reading input files and performing
 checks on the detector related to hardware injections.
 """
 
+from numpy import loadtxt
 from gpstime import gpstime
 from subprocess import Popen, PIPE
 
@@ -109,7 +110,7 @@ def read_waveform(waveform_path, ftype="ascii"):
     if ftype == "ascii":
 
         # read single-column ASCII file with time series
-        waveform = numpy.loadtxt(waveform_path)
+        waveform = loadtxt(waveform_path)
 
     return waveform
 
