@@ -10,3 +10,4 @@ def awg_inject(channel_name, timeseries, gps_start_time,
     awg_exc.start(ramptime=ramptime, wait=True)
     awg_exc.stop()
 
+    return 0

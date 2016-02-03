@@ -10,7 +10,6 @@ from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
 from injtools import check_exttrig_alert, check_imminent_injection, read_schedule, read_waveform
-#from injupload import gracedb_upload
 
 # name of channel to inject transient signals
 model_name = "CAL-INJ"
@@ -168,9 +167,14 @@ class CBC(GuardState):
 
         #! FIXME: commented out for dev
         # call awgstream
-        #awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate)
+        #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate)
+        retcode = 1
 
-        return
+        # jump transition to post-injection state
+        if retcode:
+            return "ABORT"
+        else:
+            return "SUCESS"
 
 class SUCCESS(GuardState):
     """ None.
@@ -180,7 +184,7 @@ class SUCCESS(GuardState):
         """ Execute method once.
         """
 
-        return
+        return "ENABLED"
 
 class ABORT(GuardState):
     """ None.
@@ -190,7 +194,7 @@ class ABORT(GuardState):
         """ Execute method once.
         """
 
-        return
+        return "ENABLED"
 
 # define directed edges that connect guardian states
 edges = (
