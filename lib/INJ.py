@@ -20,11 +20,8 @@ from time import sleep
 # VARIABLES
 ###############################################################################
 
-# name of module
-prefix = 'CAL-INJ'
-
 # name of channel to inject transient signals
-exc_channel = prefix + '_TRANSIENT_EXC'
+exc_channel = 'CAL-INJ_TRANSIENT_EXC'
 
 # seconds to sleep after an iteration of STATE.run
 sleep_time = 20
@@ -73,10 +70,6 @@ class DISABLED(GuardState):
         ''' Execute method in a loop.
         '''
 
-        # get the current GPS time
-        current_gps_time = gpstime.tconvert('now').gps()
-        log('The time is %d'%current_gps_time)
-
         # FIXME: off until production
         # set injection bit to disabled
         # ezca.write('TINJ_OUTCOME', -4)
@@ -113,10 +106,6 @@ class IDLE(GuardState):
     def run(self):
         ''' Execute method in a loop.
         '''
-
-        # get the current GPS time
-        current_gps_time = gpstime.tconvert('now').gps()
-        log('The time is %d'%current_gps_time)
 
         # read schedule
         inj_list = injtools.read_schedule(schedule_path)
