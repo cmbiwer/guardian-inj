@@ -14,7 +14,6 @@ import injtools
 #import injupload
 from guardian import GuardState
 from gpstime import gpstime
-from time import sleep
 
 ###############################################################################
 # VARIABLES
@@ -22,9 +21,6 @@ from time import sleep
 
 # name of channel to inject transient signals
 exc_channel = 'CAL-INJ_TRANSIENT_EXC'
-
-# seconds to sleep after an iteration of STATE.run
-sleep_time = 20
 
 # path to schedule file
 schedule_path = 'fake_schedule'
@@ -78,10 +74,6 @@ class DISABLED(GuardState):
         inj_enabled = injtools.check_injections_enabled()
         if inj_enabled:
             return 'IDLE'
-
-        # wait some set amount of time
-        log('Will now sleep %d seconds\n'%sleep_time)
-        sleep(sleep_time)
 
 class IDLE(GuardState):
     ''' The IDLE state will loop continuously. In each loop it will start off
@@ -144,10 +136,6 @@ class IDLE(GuardState):
         else:
             log('There is no imminent injection')
 
-        # wait some set amount of time
-        log('Will now sleep %d seconds\n'%sleep_time)
-        sleep(sleep_time)
-
 class CBC(GuardState):
     ''' The CBC state is for performing CBC hardware injections. In the CBC
     state a hardware injection event is uploaded to GraceDB. Then an external
@@ -189,12 +177,6 @@ class CBC(GuardState):
         # set end time of injection
         current_gps_time = gpstime.tconvert('now').gps()
         # ezca.write('TINJ_END', current_gps_time)
-
-        # FIXME: set to 300 seconds because using echo as inj_exe
-        # wait some set amount of time
-        postinj_time = 300
-        log('Will now sleep %d seconds\n'%postinj_time)
-        sleep(postinj_time)
 
         return 'IDLE'
 
