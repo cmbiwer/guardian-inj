@@ -1,3 +1,11 @@
+# -*- mode: python; tab-width: 4; indent-tabs-mode: nil -*-
+
+"""
+INJ awg guardian module
+
+This module calls awg to inject a signal.
+"""
+
 from awg import ArbitraryLoop
 
 def awg_inject(channel_name, timeseries, gps_start_time,

@@ -3,7 +3,7 @@
 """
 INJ base guardian module
 
-This defines the behavior for all transient injections.
+This module defines the behavior for all transient injections.
 """
 
 from gpstime import gpstime

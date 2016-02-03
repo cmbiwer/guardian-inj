@@ -3,12 +3,8 @@
 '''
 INJ GraceDb module
 
-This defines how to upload injections to GraceDb.
+This module provides functions for uploading hardware injections to GraceDb.
 '''
-
-###############################################################################
-# IMPORTS
-###############################################################################
 
 import tempfile
 import ligo.gracedb.rest as gracedb_rest
@@ -19,16 +15,8 @@ from glue.ligolw import ligolw, lsctables, table, utils
 class ContentHandler(ligolw.LIGOLWContentHandler):
     pass
 
-###############################################################################
-# VARIABLES
-###############################################################################
-
 # URL to injection SVN that contains waveform files
 injection_svn_url = 'https://daqsvn.ligo-la.caltech.edu/svn/injection/hwinj/Details/'
-
-###############################################################################
-# FUNCTIONS
-###############################################################################
 
 def upload_gracedb_event(inj):
     ''' Uploads an event to GraceDb.

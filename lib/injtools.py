@@ -1,3 +1,12 @@
+# -*- mode: python; tab-width: 4; indent-tabs-mode: nil -*-
+
+"""
+INJ tools guardian module
+
+This module provides functions for reading files and performing
+checks related to hardware injections.
+"""
+
 from gpstime import gpstime
 from subprocess import Popen, PIPE
 
