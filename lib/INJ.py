@@ -66,10 +66,8 @@ class DISABLED(GuardState):
         ''' Execute method in a loop.
         '''
 
-        # FIXME: off until production
-        # set injection bit to disabled
-        # ezca.write('TINJ_OUTCOME', -4)
-
+        #! FIXME: this is assuming old setup of a TINJ_ENABLE button
+        #! could operator request change on guardian interface
         # if injections are enabled then move to IDLE state
         inj_enabled = injtools.check_injections_enabled()
         if inj_enabled:
@@ -128,10 +126,6 @@ class IDLE(GuardState):
                 log('Will not perform injection because detector is' + \
                          'not in observation mode')
 
-                # FIXME: off until production
-                # set injection bit to not in observation mode
-                # ezca.write('TINJ_OUTCOME', -6)
-
         # else there is no imminent injection continue
         else:
             log('There is no imminent injection')
@@ -156,22 +150,11 @@ class CBC(GuardState):
         # ezca.write('TINJ_START', imminent_inj.scheduled_time)
         # ezca.write('TINJ_END', 0)
 
-        # FIXME: off until production
-        # set injection bit to streaming
-        # ezca.write('TINJ_OUTCOME', 2)
-
         # call awgstream
         log('Calling external command to perform injection')
         cmd = map(str, [inj_exe, exc_channel, sample_rate, 
                imminent_inj.waveform_path, imminent_inj.scale_factor])
         retcode = injtools.make_external_call(cmd)
-
-        # FIXME: off until production
-        # set injection bit to failure or successful
-        # if retcode:
-            # ezca.write('TINJ_OUTCOME', -4)
-        # else:
-            # ezca.write('TINJ_OUTCOME', 1)
 
         # FIXME: off until production
         # set end time of injection
