@@ -163,10 +163,8 @@ class PREP(GuardState):
             }
             #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
-        # if along the way there are any errors then abort
+        # if there was an error add it to the log and ABORT the injection
         except Exception as e:
-
-            # if there was an error add it to the log and ABORT the injection
             log(e)
             return "ABORT"
 
