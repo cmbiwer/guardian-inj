@@ -8,7 +8,9 @@ This defines the behavior for all transient injections.
 
 from gpstime import gpstime
 from guardian import GuardState
-from injtools import check_exttrig_alert, check_imminent_injection, read_schedule
+from injawg import awg_inject
+from injtools import check_exttrig_alert, check_imminent_injection, read_schedule, read_waveform
+#from injupload import gracedb_upload
 
 # name of channel to inject transient signals
 model_name = "CAL-INJ"
@@ -34,6 +36,9 @@ sample_rate = 16384
 
 # global variable for imminent HardwareInjection
 global imminent_hwinj
+
+# global variable to hold waveform time series
+global waveform
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
@@ -90,7 +95,7 @@ class IDLE(GuardState):
         """ Execute method in a loop.
         """
 
-        # check if electromagnetic alert
+        # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
         if exttrig_alert_time:
             return "EXTTRIG_ALERT"
@@ -115,7 +120,7 @@ class EXTTRIG_ALERT(GuardState):
         """ Execute method in a loop.
         """
 
-        # check if electromagnetic alert
+        # check if not external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
         if not exttrig_alert_time:
             return "ENABLED"
@@ -130,20 +135,28 @@ class PREP(GuardState):
 
         # upload hardware injection to gracedb
 
+        # read waveform file
+        waveform = read_waveform(imminent_hwinj.waveform_path)
+
         return
 
     def run(self):
         """ Execute method in a loop.
         """
 
-        # check if electromagnetic alert
+        # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
         if exttrig_alert_time:
             return "EXTTRIG_ALERT"
 
         # check if hardware injection is imminent enough to call awgstream
         if check_imminent_injection([imminent_hwinj], awgstream_wait_time):
-            return hwinj.schedule_state
+
+            # check if detector in desired observation mode
+            if True:
+                return hwinj.schedule_state
+            else:
+                return "ABORT"
 
 class CBC(GuardState):
     """ None.
@@ -153,11 +166,13 @@ class CBC(GuardState):
         """ Execute method once.
         """
 
+        #! FIXME: commented out for dev
         # call awgstream
+        #awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate)
 
         return
 
-class POST_SUCCESS(GuardState):
+class SUCCESS(GuardState):
     """ None.
     """
 
@@ -167,7 +182,7 @@ class POST_SUCCESS(GuardState):
 
         return
 
-class POST_FAILURE(GuardState):
+class ABORT(GuardState):
     """ None.
     """
 
@@ -180,10 +195,11 @@ class POST_FAILURE(GuardState):
 # define directed edges that connect guardian states
 edges = (
     ("ENABLED", "IDLE"),
-    ("IDLE", "PRE"),
+    ("IDLE", "PREP"),
     ("PREP", "CBC"),
-    ("CBC", "POST_SUCCESS"),
-    ("CBC", "POST_FAILURE"),
+    ("PREP", "ABORT"),
+    ("CBC", "SUCCESS"),
+    ("CBC", "ABORT"),
 )
 
 

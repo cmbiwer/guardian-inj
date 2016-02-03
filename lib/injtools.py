@@ -151,9 +151,14 @@ def make_external_call(cmd_list, stdout=PIPE, stderr=PIPE, shell=False):
 
     return process.returncode
 
+def read_waveform(waveform_path):
+    """ None.
+    """
 
+    # read single-column ASCII file with time series
+    waveform = numpy.loadtxt(waveform_path)
 
-
+    return waveform
 
 
 
