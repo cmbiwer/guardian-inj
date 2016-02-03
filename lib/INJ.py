@@ -112,8 +112,8 @@ class IDLE(GuardState):
         # check schedule for imminent hardware injection
         hwinj_list = read_schedule(schedule_path)
         imminent_hwinj = check_imminent_injection(hwinj_list, imminent_wait_time)
-
-        print exttrig_alert_time, imminent_hwinj
+        if imminent_hwinj:
+            return "PREP"
 
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking

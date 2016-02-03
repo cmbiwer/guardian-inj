@@ -7,8 +7,8 @@ This module provides functions for uploading hardware injections to GraceDb.
 '''
 
 import tempfile
-import ligo.gracedb.rest as gracedb_rest
-from glue.ligolw import ligolw, lsctables, table, utils
+#import ligo.gracedb.rest as gracedb_rest
+#from glue.ligolw import ligolw, lsctables, table, utils
 
 # setup content handler for LIGOLW XML
 @lsctables.use_in
@@ -18,7 +18,7 @@ class ContentHandler(ligolw.LIGOLWContentHandler):
 # URL to injection SVN that contains waveform files
 injection_svn_url = 'https://daqsvn.ligo-la.caltech.edu/svn/injection/hwinj/Details/'
 
-def upload_gracedb_event(inj):
+def upload_gracedb_injection(hwinj):
     ''' Uploads an event to GraceDb.
 
     Parameters
