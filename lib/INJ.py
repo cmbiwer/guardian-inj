@@ -18,6 +18,15 @@ exc_channel_name = model_name + "_TRANSIENT_EXC"
 # name of channel to check for external alerts
 exttrig_channel_name = model_name + "_EXTTRIG_ALERT_TIME"
 
+# name of channel to check if detector is locked
+lock_channel_name = "GRD-ISC_LOCK_OK"
+
+# name of channel to check if intent mode on
+obs_channel_name = "ODC-MASTER_CHANNEL_LATCH"
+
+# name of channel to write tinj type
+type_channeL_name = model_name + "_TINJ_TYPE"
+
 # seconds to wait for an external alert
 exttrig_wait_time = 3600
 
@@ -137,6 +146,13 @@ class PREP(GuardState):
         # read waveform file
         waveform = read_waveform(imminent_hwinj.waveform_path)
 
+        #! FIXME: commented out for dev
+        # legacy of the old setup to set TINJ_TYPE
+        tinj_type_dict = {
+            "CBC" : 1,
+        }
+        #ezca.write(type_channel_name, tinj_type_dict[hwinj.schedule_state])
+
         return
 
     def run(self):
@@ -151,11 +167,18 @@ class PREP(GuardState):
         # check if hardware injection is imminent enough to call awgstream
         if check_imminent_injection([imminent_hwinj], awgstream_wait_time):
 
-            # check if detector in desired observation mode
-            if True:
-                return hwinj.schedule_state
-            else:
-                return "ABORT"
+            # check if detector is locked
+            if ezca.read(lock_channel_name) == 1:
+
+                # check if detector in desired observing mode
+                latch = ezca.read(obs_channel_name)
+                if latch == 1 and imminent_hwinj.observation_mode == 1:
+                    return hwinj.schedule_state
+                elif latch == 0 and imminent_hwinj.observation_mode == 0:
+                    return hwinj.schedule_state
+
+            # if detector is not locked or not in desired observing mode then abort
+            return "ABORT"
 
 class CBC(GuardState):
     """ None.
