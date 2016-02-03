@@ -190,7 +190,7 @@ class CBC(GuardState):
 
         #! FIXME: commented out for dev
         # call awgstream
-        #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate)
+        #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate, scale_factor=scale_factor)
         retcode = 1
 
         # jump transition to post-injection state
