@@ -10,6 +10,7 @@ from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
 from injtools import check_exttrig_alert, check_imminent_injection, read_schedule, read_waveform
+from injupload import gracedb_upload_injection
 
 # name of channel to inject transient signals
 model_name = "CAL-INJ"
@@ -121,9 +122,6 @@ class EXTTRIG_ALERT(GuardState):
     to the ENABLED state.
     """
 
-    # automatically assign edges from every other state
-    goto = True
-
     def run(self):
         """ Execute method in a loop.
         """
@@ -146,37 +144,47 @@ class PREP(GuardState):
     """
 
     def main(self):
-        """ 
+        """ Execute method once.
         """
 
-        # upload hardware injection to gracedb
+        try:
 
-        # read waveform file
-        waveform = read_waveform(imminent_hwinj.waveform_path)
+            # upload hardware injection to gracedb
+            # gracedb_upload_injection()
 
-        #! FIXME: commented out for dev
-        # legacy of the old setup to set TINJ_TYPE
-        tinj_type_dict = {
-            "CBC" : 1,
-        }
-        #ezca.write(type_channel_name, tinj_type_dict[hwinj.schedule_state])
+            # read waveform file
+            waveform = read_waveform(imminent_hwinj.waveform_path)
+
+            #! FIXME: commented out for dev
+            # legacy of the old setup to set TINJ_TYPE
+            tinj_type_dict = {
+                "CBC" : 1,
+            }
+            #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
+
+        except Exception as e:
+
+            # if there was an error add it to the log and ABORT the injection
+            log(e)
+            return "ABORT"
 
     def run(self):
         """ Execute method in a loop.
         """
 
         # check if external alert
+        # in the PREP state if we find an external alert we jump to the ABORT state first
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
         if exttrig_alert_time:
-            return "EXTTRIG_ALERT"
+            return "ABORT"
 
-        # check if hardware injection is imminent enough to call awg
+        # check if hardware injection is imminent enough to call awg for injection
         if check_imminent_injection([imminent_hwinj], awg_wait_time):
 
             # check if detector is locked
             if ezca.read(lock_channel_name) == 1:
 
-                # check if detector in desired observing mode
+                # check if detector in desired observing mode and make jump transition
                 latch = ezca.read(obs_channel_name)
                 if latch == 1 and imminent_hwinj.observation_mode == 1:
                     return hwinj.schedule_state
@@ -187,7 +195,7 @@ class PREP(GuardState):
             return "ABORT"
 
 class CBC(GuardState):
-    """ None.
+    """ The CBC state will perform a CBC hardware injection.
     """
 
     def main(self):
@@ -195,7 +203,7 @@ class CBC(GuardState):
         """
 
         #! FIXME: commented out for dev
-        # call awg
+        # call awg to inject the signal
         #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate, scale_factor=scale_factor)
         retcode = 1
 
@@ -206,7 +214,8 @@ class CBC(GuardState):
             return "SUCESS"
 
 class SUCCESS(GuardState):
-    """ None.
+    """ The SUCCESS state is an intermediary state for an injection that was
+    successfully performed. There is a jump transition to the ENABLED state.
     """
 
     def main(self):
@@ -216,23 +225,36 @@ class SUCCESS(GuardState):
         return "ENABLED"
 
 class ABORT(GuardState):
-    """ None.
+    """ The ABORT state is an intermediary state for an injection that was not
+    successfully performed. There is a jump transition to the ENABLED state.
+
+    A hardware injection could have been aborted for several reasons including
+    but not limited to incorrect types in schedule file, could not read waveform
+    file, an external alert was recieved in the PREP state, or the detector is
+    not locked.
     """
 
     def main(self):
         """ Execute method once.
         """
 
+        # check if external alert
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        if exttrig_alert_time:
+            return "EXTTRIG_ALERT"
+
         return "ENABLED"
 
 # define directed edges that connect guardian states
 edges = (
     ("ENABLED", "IDLE"),
+    ("IDLE", "EXTTRIG_ALERT"),
     ("IDLE", "PREP"),
     ("PREP", "CBC"),
     ("PREP", "ABORT"),
     ("CBC", "SUCCESS"),
     ("CBC", "ABORT"),
+    ("ABORT", "EXTTRIG_ALERT"),
 )
 
 
