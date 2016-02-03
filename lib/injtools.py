@@ -3,8 +3,8 @@
 """
 INJ tools guardian module
 
-This module provides functions for reading files and performing
-checks related to hardware injections.
+This module provides functions for reading input files and performing
+checks on the detector related to hardware injections.
 """
 
 from gpstime import gpstime
@@ -88,6 +88,31 @@ def read_schedule(schedule_path):
 
     return hwinj_list
 
+def read_waveform(waveform_path, ftype="ascii"):
+    """ Reads a waveform file. Only single-column ASCII files are
+    supported for reading.
+
+    Parameters
+    ----------
+    waveform_path: str
+        Path to the waveform file.
+    ftype: str
+        Selects what method to use. Must be a string set to "ascii".
+
+    Retuns
+    ----------
+    waveform: numpy.array
+        Returns the time series as a numpy array.
+    """
+
+    # single-coulmn ASCII file reading
+    if ftype == "ascii":
+
+        # read single-column ASCII file with time series
+        waveform = numpy.loadtxt(waveform_path)
+
+    return waveform
+
 def check_imminent_injection(hwinj_list, imminent_wait_time):
     """ Find the most imminent hardware injection. The injection must
     be within imminent_wait_time for it to be considered imminent.
@@ -145,31 +170,6 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
         return exttrig_alert_time
     else:
         return None
-
-def read_waveform(waveform_path, ftype="ascii"):
-    """ Reads a waveform file. Only single-column ASCII files are
-    supported for reading.
-
-    Parameters
-    ----------
-    waveform_path: str
-        Path to the waveform file.
-    ftype: str
-        Selects what method to use. Must be a string set to "ascii".
-
-    Retuns
-    ----------
-    waveform: numpy.array
-        Returns the time series as a numpy array.
-    """
-
-    # single-coulmn ASCII file reading
-    if ftype == "ascii":
-
-        # read single-column ASCII file with time series
-        waveform = numpy.loadtxt(waveform_path)
-
-    return waveform
 
 
 
