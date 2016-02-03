@@ -11,9 +11,7 @@ This defines the behavior for all transient injections.
 ###############################################################################
 
 import injtools
-import injupload
-import logging
-from ezca import Ezca
+#import injupload
 from guardian import GuardState
 from gpstime import gpstime
 from time import sleep
@@ -41,9 +39,6 @@ sample_rate = 16384
 # executable to perform hardware injections
 inj_exe = 'echo'
 
-# setup log
-log = logging.getLogger('INJ')
-
 # global variable for imminent injection
 imminent_inj = None
 
@@ -60,9 +55,6 @@ class INIT(GuardState):
     def main(self):
         ''' Executate method once.
         '''
-
-        # setup EPICS reading and writing
-        ezca = Ezca(prefix)
 
         return 'DISABLED'
 
@@ -83,7 +75,7 @@ class DISABLED(GuardState):
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert('now').gps()
-        log.info('The time is %d', current_gps_time)
+        log('The time is %d'%current_gps_time)
 
         # FIXME: off until production
         # set injection bit to disabled
@@ -95,7 +87,7 @@ class DISABLED(GuardState):
             return 'IDLE'
 
         # wait some set amount of time
-        log.info('Will now sleep %d seconds\n', sleep_time)
+        log('Will now sleep %d seconds\n'%sleep_time)
         sleep(sleep_time)
 
 class IDLE(GuardState):
@@ -124,11 +116,11 @@ class IDLE(GuardState):
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert('now').gps()
-        log.info('The time is %d', current_gps_time)
+        log('The time is %d'%current_gps_time)
 
         # read schedule
         inj_list = injtools.read_schedule(schedule_path)
-        log.info('There are %d injections in the future', len(inj_list))
+        log('There are %d injections in the future'%len(inj_list))
 
         # check if injection is imminent
         global imminent_inj
@@ -137,13 +129,12 @@ class IDLE(GuardState):
         # if injections are disabled then move to DISABLED state
         inj_enabled = injtools.check_injections_enabled()
         if not inj_enabled:
-            log.info('Injections have been disabled')
+            log('Injections have been disabled')
             return 'DISABLED'
 
         # if there is an imminent injection then check if detector is observing
         if imminent_inj:
-            log.info('There is an imminent injection at %f',
-                         imminent_inj.scheduled_time)
+            log('There is an imminent injection at %f'%imminent_inj.scheduled_time)
             detector_enabled = injtools.check_detector_enabled()
 
             # if detector is in observation mode then change to
@@ -153,7 +144,7 @@ class IDLE(GuardState):
 
             # else continue in IDLE.run and do not perform injection
             else:
-                log.info('Will not perform injection because detector is' + \
+                log('Will not perform injection because detector is' + \
                          'not in observation mode')
 
                 # FIXME: off until production
@@ -162,10 +153,10 @@ class IDLE(GuardState):
 
         # else there is no imminent injection continue
         else:
-            log.info('There is no imminent injection')
+            log('There is no imminent injection')
 
         # wait some set amount of time
-        log.info('Will now sleep %d seconds\n', sleep_time)
+        log('Will now sleep %d seconds\n'%sleep_time)
         sleep(sleep_time)
 
 class CBC(GuardState):
@@ -193,7 +184,7 @@ class CBC(GuardState):
         # ezca.write('TINJ_OUTCOME', 2)
 
         # call awgstream
-        log.info('Calling external command to perform injection')
+        log('Calling external command to perform injection')
         cmd = map(str, [inj_exe, exc_channel, sample_rate, 
                imminent_inj.waveform_path, imminent_inj.scale_factor])
         retcode = injtools.make_external_call(cmd)
@@ -213,7 +204,7 @@ class CBC(GuardState):
         # FIXME: set to 300 seconds because using echo as inj_exe
         # wait some set amount of time
         postinj_time = 300
-        log.info('Will now sleep %d seconds\n', postinj_time)
+        log('Will now sleep %d seconds\n'%postinj_time)
         sleep(postinj_time)
 
         return 'IDLE'
