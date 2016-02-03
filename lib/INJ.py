@@ -90,6 +90,22 @@ class IDLE(GuardState):
 
         print exttrig_alert_time, imminent_hwinj
 
+class EXTTRIG_ALERT(GuardState):
+    """ None.
+    """
+
+    # automatically assign edges from every other state
+    goto = True
+
+    def run(self):
+        """ None.
+        """
+
+        # check if electromagnetic alert
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        if not exttrig_alert_time:
+            return "ENABLED"
+
 # define directed edges that connect guardian states
 edges = (
     ("ENABLED", "IDLE"),
