@@ -73,7 +73,7 @@ class DISABLED(GuardState):
         """ Execute method in a loop.
         """
 
-        #! FIXME: for tests only
+        #! FIXME: commented out for dev
         return "ENABLED"
 
         return
@@ -150,8 +150,9 @@ class PREP(GuardState):
         # try to upload to GraceDB and read waveform
         try:
 
+            #! FIXME: commented out for dev
             # upload hardware injection to gracedb
-            # gracedb_upload_injection()
+            #gracedb_upload_injection(imminent_hwinj)
 
             # read waveform file
             waveform = read_waveform(imminent_hwinj.waveform_path)
