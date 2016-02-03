@@ -147,6 +147,7 @@ class PREP(GuardState):
         """ Execute method once.
         """
 
+        # try to upload to GraceDB and read waveform
         try:
 
             # upload hardware injection to gracedb
@@ -162,6 +163,7 @@ class PREP(GuardState):
             }
             #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
+        # if along the way there are any errors then abort
         except Exception as e:
 
             # if there was an error add it to the log and ABORT the injection
