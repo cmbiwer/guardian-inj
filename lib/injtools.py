@@ -96,6 +96,9 @@ def check_imminent_injection(hwinj_list, imminent_wait_time):
     ----------
     hwinj_list: list
         A list of HardwareInjection instances.
+    imminent_wait_time: float
+        Seconds to check from current time to determine if a hardware
+        injection is imminent.
 
     Retuns
     ----------
