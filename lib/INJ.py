@@ -33,8 +33,8 @@ exttrig_wait_time = 3600
 # seconds to check for an imminent hardware injection
 imminent_wait_time = 600
 
-# seconds in advance to call awgstream
-awgstream_wait_time = 30
+# seconds in advance to call awg
+awg_wait_time = 30
 
 # path to schedule file
 schedule_path = "fake_schedule"
@@ -134,7 +134,15 @@ class EXTTRIG_ALERT(GuardState):
             return "ENABLED"
 
 class PREP(GuardState):
-    """ None.
+    """ The PREP state will upload a hardware injection event to GraceDB and read
+    the waveform file upon entry. It will also set the legacy TINJ_TYPE EPICs
+    record for the desired injection type at this time.
+
+    It will then continuously run PREP.run until its nearly time to inject. Once
+    the current GPS time is within awg_wait_time of the start of the injection,
+    then it will check if the detector is locked and in the desired observing
+    mode. If it is then there will be a jump transition to the injection type's
+    state, else there will be a jump transition to the ABORT state.
     """
 
     def main(self):
@@ -153,8 +161,6 @@ class PREP(GuardState):
         }
         #ezca.write(type_channel_name, tinj_type_dict[hwinj.schedule_state])
 
-        return
-
     def run(self):
         """ Execute method in a loop.
         """
@@ -164,8 +170,8 @@ class PREP(GuardState):
         if exttrig_alert_time:
             return "EXTTRIG_ALERT"
 
-        # check if hardware injection is imminent enough to call awgstream
-        if check_imminent_injection([imminent_hwinj], awgstream_wait_time):
+        # check if hardware injection is imminent enough to call awg
+        if check_imminent_injection([imminent_hwinj], awg_wait_time):
 
             # check if detector is locked
             if ezca.read(lock_channel_name) == 1:
@@ -189,7 +195,7 @@ class CBC(GuardState):
         """
 
         #! FIXME: commented out for dev
-        # call awgstream
+        # call awg
         #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate, scale_factor=scale_factor)
         retcode = 1
 
