@@ -23,6 +23,7 @@ class HardwareInjection(object):
         self.scale_factor = float(scale_factor)
         self.waveform_path = waveform_path
         self.metadata_path = metadata_path
+        self.gracedb_id = None
 
     def __repr__(self):
         return "<" + " ".join(map(str, [self.schedule_time, self.schedule_state])) + " HardwareInjection>"

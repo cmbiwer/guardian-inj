@@ -223,6 +223,8 @@ class SUCCESS(GuardState):
         """ Execute method once.
         """
 
+        # append success message to GraceDB event
+
         return "ENABLED"
 
 class ABORT(GuardState):
@@ -238,6 +240,8 @@ class ABORT(GuardState):
     def main(self):
         """ Execute method once.
         """
+
+        # append abort message to GraceDB event
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)

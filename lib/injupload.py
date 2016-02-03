@@ -83,3 +83,5 @@ def upload_gracedb_injection(hwinj):
     message += '<a href='+metadata_url+'>original XML parameter file</a>'
     out2 = client.writeLog(graceid, message, tagname='analyst comments')
 
+def upload_gracedb_message(gracedb_id, message):
+    pass
