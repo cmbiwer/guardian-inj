@@ -37,7 +37,7 @@ global imminent_hwinj
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
-    daemon. It will run INIT.main once where then there will be a jump transition
+    daemon. It will run INIT.main once where there will be a jump transition
     to the DISABLED state.
     """
 
@@ -48,8 +48,8 @@ class INIT(GuardState):
         return "DISABLED"
 
 class DISABLED(GuardState):
-    """ The DISABLED state is for when injections have been disabled manually.
-    The DISABLED state will not be left unless the operator requests.
+    """ The DISABLED state is for when hardware injections have been disabled
+    manually. The DISABLED state will not be left unless the operator requests.
     """
 
     # automatically assign edges from every other state
@@ -77,7 +77,13 @@ class ENABLED(GuardState):
         return "IDLE"
 
 class IDLE(GuardState):
-    """ The IDLE state continuously loops.
+    """ The IDLE state continuously loops IDLE.run checking for external
+    alerts and if there is an imminent hardware injection.
+
+    An imminment hardware injection is defined by imminent_wait_time in seconds.
+
+    An external alert will cause a jump transition to the EXTTRIG_ALERT state if
+    it is within exttrig_wait_time seconds.
     """
 
     def run(self):
@@ -86,6 +92,8 @@ class IDLE(GuardState):
 
         # check if electromagnetic alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        if exttrig_alert_time:
+            return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
         hwinj_list = read_schedule(schedule_path)
@@ -94,14 +102,17 @@ class IDLE(GuardState):
         print exttrig_alert_time, imminent_hwinj
 
 class EXTTRIG_ALERT(GuardState):
-    """ None.
+    """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
+    if the most recent external alert is not within exttrig_wait_time seconds.
+    Once the external alert is far enough in the past there will be a jump transition
+    to the ENABLED state.
     """
 
     # automatically assign edges from every other state
     goto = True
 
     def run(self):
-        """ None.
+        """ Execute method in a loop.
         """
 
         # check if electromagnetic alert
@@ -114,7 +125,7 @@ class PREP(GuardState):
     """
 
     def main(self):
-        """ None.
+        """ 
         """
 
         # upload hardware injection to gracedb
@@ -122,17 +133,24 @@ class PREP(GuardState):
         return
 
     def run(self):
-        """ None.
+        """ Execute method in a loop.
         """
 
-        return
+        # check if electromagnetic alert
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        if exttrig_alert_time:
+            return "EXTTRIG_ALERT"
+
+        # check if hardware injection is imminent enough to call awgstream
+        if check_imminent_injection([imminent_hwinj], awgstream_wait_time):
+            return hwinj.schedule_state
 
 class CBC(GuardState):
     """ None.
     """
 
     def main(self):
-        """ None.
+        """ Execute method once.
         """
 
         # call awgstream
@@ -144,7 +162,7 @@ class POST_SUCCESS(GuardState):
     """
 
     def main(self):
-        """ None.
+        """ Execute method once.
         """
 
         return
@@ -154,7 +172,7 @@ class POST_FAILURE(GuardState):
     """
 
     def main(self):
-        """ None.
+        """ Execute method once.
         """
 
         return
