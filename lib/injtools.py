@@ -27,7 +27,20 @@ class HardwareInjection(object):
         return "<" + " ".join(map(str, [self.schedule_time, self.schedule_state])) + " HardwareInjection>"
 
 def read_schedule(schedule_path):
-    """ Parses schedule file.
+    """ Parses schedule file. Schedule file should be a space-delimited file
+    with the following ordered columns: GPS start time, INJ state, observing mode,
+    scale factor, path to the waveform file, and path to a meta-data file.
+
+    The INJ state should be one of the INJ guardian module's states.
+
+    The observing mode column should be 1 or 0. If there is a 1 the injection
+    will be performed in observation mode and if there is a 0 the injection will
+    be performed in commissioning mode.
+
+    The scale factor should be a float. This is the overall factor a time series
+    will be multiplied by before it is injected.
+
+    If there is no meta-data file, then use None for this column.
 
     Parameters
     ----------
@@ -76,7 +89,8 @@ def read_schedule(schedule_path):
     return hwinj_list
 
 def check_imminent_injection(hwinj_list, imminent_wait_time):
-    """ Find the most imminent hardware injection.
+    """ Find the most imminent hardware injection. The injection must
+    be within imminent_wait_time for it to be considered imminent.
 
     Parameters
     ----------
@@ -129,43 +143,28 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
     else:
         return None
 
-def make_external_call(cmd_list, stdout=PIPE, stderr=PIPE, shell=False):
-    """ Make an external call on the command line.
+def read_waveform(waveform_path, ftype="ascii"):
+    """ Reads a waveform file. Only single-column ASCII files are
+    supported for reading.
 
     Parameters
     ----------
-    cmd_list: list
-        A list where the elements are the command line arguments.
-    stdout: object
-        Where to write stdout.
-    stderr: object
-        Where to write stderr.
-    shell: boolean
-        If True then execute external call through the shell.
+    waveform_path: str
+        Path to the waveform file.
+    ftype: str
+        Selects what method to use. Must be a string set to "ascii".
 
     Retuns
     ----------
-    process.returncode: int
-        The exit code of the external call.
+    waveform: numpy.array
+        Returns the time series as a numpy array.
     """
 
-    # run command
-    cmd_list = map(str, cmd_list)
-    cmd_str = " ".join(cmd_list)
-    process = Popen(cmd_list, shell=shell,
-                  stdout=stdout, stderr=stderr)
+    # single-coulmn ASCII file reading
+    if ftype == "ascii":
 
-    # get standard output and standard error
-    stdout, stderr = process.communicate()
-
-    return process.returncode
-
-def read_waveform(waveform_path):
-    """ None.
-    """
-
-    # read single-column ASCII file with time series
-    waveform = numpy.loadtxt(waveform_path)
+        # read single-column ASCII file with time series
+        waveform = numpy.loadtxt(waveform_path)
 
     return waveform
 

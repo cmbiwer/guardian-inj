@@ -13,6 +13,7 @@ def awg_inject(channel_name, timeseries, gps_start_time,
     """ None.
     """
 
+    # call awg and inject the time series
     awg_exc = ArbitraryLoop(channel_name, timeseries, scale=scale_factor,
                             rate=sample_rate, start=gps_start_time)
     awg_exc.start(ramptime=ramptime, wait=True)
