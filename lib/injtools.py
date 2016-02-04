@@ -37,17 +37,18 @@ class HardwareInjection(object):
 
 def read_schedule(schedule_path):
     """ Parses schedule file. Schedule file should be a space-delimited file
-    with the following ordered columns: GPS start time, INJ state, observing mode,
-    scale factor, path to the waveform file, and path to a meta-data file.
+    with the following ordered columns: GPS start time, INJ state, observing
+    mode, scale factor, path to the waveform file, and path to a meta-data
+    file.
 
     The INJ state should be one of the INJ guardian module's states.
 
     The observing mode column should be 1 or 0. If there is a 1 the injection
-    will be performed in observation mode and if there is a 0 the injection will
-    be performed in commissioning mode.
+    will be performed in observation mode and if there is a 0 the injection
+    will be performed in commissioning mode.
 
-    The scale factor should be a float. This is the overall factor a time series
-    will be multiplied by before it is injected.
+    The scale factor should be a float. This is the overall factor a time
+    series will be multiplied by before it is injected.
 
     If there is no meta-data file, then use None for this column.
 
@@ -225,7 +226,8 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
     Retuns
     ----------
     exttrig_alert_time: float
-        If external alert within wait period then return the GPS time of the alert.
+        If external alert within wait period then return the GPS time of
+        the alert.
     """
 
     # get the current GPS time
