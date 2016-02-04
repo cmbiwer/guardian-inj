@@ -181,8 +181,7 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
         file_contents = fp.read()
         fp.close()
 
-        return file_contents
-
+    return file_contents
 
 def check_imminent_injection(hwinj_list, imminent_wait_time):
     """ Find the most imminent hardware injection. The injection must
