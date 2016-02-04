@@ -150,17 +150,18 @@ def read_waveform(waveform_path, ftype="ascii"):
 
     return waveform
 
-def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
+def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
     """ Reads a file that contains meta-data about the waveform file.
-    Only XML files with a single row of a sim_inspiral table are
-    supported.
 
-    GraceDB only supports uploading SimInspiral files.
+    Only XML files with a single row of a sim_inspiral table are
+    supported. GraceDB only supports uploading SimInspiral files.
 
     Parameters
     ----------
     metadata_path: str
         Path to the metadata file.
+    waveform_start_time: float
+        GPS start time of the waveform file for when it was generated.
     ftype: str
         Selects what method to use. Must be a string set to "sim_inspiral".
 
@@ -179,20 +180,10 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
                                          contenthandler=ContentHandler)
         except IOError as e:
 
-            cols = lsctables.SimInspiralTable.validcolumns.keys()
-            sim_table_new = lsctables.New(lsctables.SimInspiralTable, cols)
-
-            # create new LIGOLW XML document and add the new sim_inspiral table
-            xmldoc = ligolw.Document()
-            xmldoc.appendChild(ligolw.LIGO_LW())
-            xmldoc.childNodes[0].appendChild(sim_table_new)
-
-            # get XML content as a str
-            fp = tempfile.NamedTemporaryFile()
-            xmldoc.write(fp)
-            fp.seek(0)
-            file_contents = fp.read()
-            fp.close()
+            # if cannot read the XML file then log error and return
+            # an empty sim_inspiral XML file as a string
+            #log(e)
+            file_contents = create_empty_sim_inspiral_xml()
 
             return file_contents
 
@@ -202,19 +193,25 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
         if len(sim_table) == 1:
             sim = sim_table[0]
         else:
+
+            # if more than one sim_inspiral row then log message, do not
+            # make any assumptions about what the user is trying to do, and
+            # return an empty sim_inspiral XML file as a string
             log("sim_inspiral table has more than one row, no meta-data read")
-            return ""
+            file_contents = create_empty_sim_inspiral_xml()
+
+            return file_contents
 
         # get corrected geocentric end time
-        dt = sim.geocent_end_time - ascii_file_start_time
+        dt = sim.geocent_end_time - waveform_start_time
         sim.geocent_end_time = inj.schedule_time + dt
 
         # get corrected H1 end time
-        dt = sim.h_end_time - ascii_file_start_time
+        dt = sim.h_end_time - waveform_start_time
         sim.h_end_time = inj.schedule_time + dt
 
         # get corrected L1 end time
-        dt = sim.l_end_time - ascii_file_start_time
+        dt = sim.l_end_time - waveform_start_time
         sim.l_end_time = inj.schedule_time + dt
 
         # FIXME: add RA correction from old script
@@ -287,6 +284,34 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
         return exttrig_alert_time
     else:
         return None
+
+def create_empty_sim_inspiral_xml():
+    """ Creates a LIGOLW XML file with an empty sim_inspiral table.
+
+    Retuns
+    ----------
+    file_contents: str
+        A string that contains a LIGOLW XML file with an empty
+        sim_inspiral table.
+    """
+
+    # create a new sim_inspiral table
+    cols = lsctables.SimInspiralTable.validcolumns.keys()
+    sim_table = lsctables.New(lsctables.SimInspiralTable, cols)
+
+    # create new LIGOLW XML document and add the new sim_inspiral table
+    xmldoc = ligolw.Document()
+    xmldoc.appendChild(ligolw.LIGO_LW())
+    xmldoc.childNodes[0].appendChild(sim_table)
+
+    # get XML content as a str
+    fp = tempfile.NamedTemporaryFile()
+    xmldoc.write(fp)
+    fp.seek(0)
+    file_contents = fp.read()
+    fp.close()
+
+    return file_contents
 
 
 
