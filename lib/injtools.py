@@ -11,7 +11,6 @@ import tempfile
 from glue.ligolw import ligolw, lsctables, table, utils
 from gpstime import gpstime
 from numpy import loadtxt
-from subprocess import Popen, PIPE
 
 @lsctables.use_in
 class ContentHandler(ligolw.LIGOLWContentHandler):
