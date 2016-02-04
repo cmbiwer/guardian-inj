@@ -8,7 +8,6 @@ This module provides functions for uploading hardware injections to GraceDB.
 
 import tempfile
 import ligo.gracedb.rest as gracedb_rest
-from glue.ligolw import ligolw, lsctables, table, utils
 from injtools import read_metadata
 
 def upload_gracedb_injection(hwinj, ifo,

@@ -8,8 +8,9 @@ checks on the detector related to hardware injections.
 """
 
 import tempfile
-from numpy import loadtxt
+from glue.ligolw import ligolw, lsctables, table, utils
 from gpstime import gpstime
+from numpy import loadtxt
 from subprocess import Popen, PIPE
 
 @lsctables.use_in
@@ -77,9 +78,10 @@ def read_schedule(schedule_path):
     for line in lines:
 
         # get line in schedule as a list of strings
+        # assumes its a space-delimited line
         data = line.split()
 
-        # parse line
+        # parse line elements into variables
         i = 0
         schedule_time = float(data[i]); i += 1
         schedule_state = data[i]; i += 1
