@@ -189,8 +189,8 @@ class PREP(GuardState):
         """
 
         # check if external alert
-        # in the PREP state if we find an external alert we jump to the ABORT
-        # state first
+        # in the PREP state if we find an external alert we jump transition
+        # to the ABORT state first
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
@@ -203,7 +203,7 @@ class PREP(GuardState):
             if ezca.read(lock_channel_name) == 1:
 
                 # check if detector in desired observing mode and
-                # then make a jump transition
+                # then make a jump transition to injection type state
                 latch = ezca.read(obs_channel_name)
                 if latch == 1 and imminent_hwinj.observation_mode == 1:
                     return hwinj.schedule_state
