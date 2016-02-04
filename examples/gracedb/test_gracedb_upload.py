@@ -4,7 +4,7 @@ from injtools import HardwareInjection
 from injupload import gracedb_upload_injection, gracedb_upload_message
 
 # set some values for attributes
-schedule_time = 0
+schedule_time = 32.23
 schedule_state = "CBC"
 observation_mode = 0
 scale_factor = 1.0

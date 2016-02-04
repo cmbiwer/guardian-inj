@@ -318,7 +318,7 @@ def create_empty_sim_inspiral_xml(geocent_end_time=0.0):
     xmldoc.childNodes[0].appendChild(sim_table)
 
     # add a row with the geocentric end time column filled
-    sim = create_empty_row(lsctables.SimInspiral)
+    sim = create_empty_sim_inspiral_row()
     sim.geocent_end_time = int(geocent_end_time)
     sim.geocent_end_time_ns = int(geocent_end_time % 1 * 1e9)
     sim_table.append(sim)
@@ -332,36 +332,27 @@ def create_empty_sim_inspiral_xml(geocent_end_time=0.0):
 
     return file_contents
 
-def create_empty_row(obj):
-    """Create an empty sim_inspiral or sngl_inspiral row where the columns have
-    default values of 0.0 for a float, 0 for an int, '' for a string. The ilwd
-    columns have a default where the index is 0.
+def create_empty_sim_inspiral_row():
+    """ Create an empty sim_inspiral or sngl_inspiral row where the columns
+    have default values of None for a float.
     """
 
-    # check if sim_inspiral or sngl_inspiral
-    if obj == lsctables.SimInspiral:
-        row = lsctables.SimInspiral()
-        cols = lsctables.SimInspiralTable.validcolumns
-    else:
-        row = lsctables.SnglInspiral()
-        cols = lsctables.SnglInspiralTable.validcolumns
+    # create sim_inspiral row
+    row = lsctables.SimInspiral()
+    cols = lsctables.SimInspiralTable.validcolumns
 
     # populate columns with default values
     for entry in cols.keys():
         if cols[entry] in ['real_4','real_8']:
-            setattr(row,entry,0.)
+            setattr(row, entry, None)
         elif cols[entry] == 'int_4s':
-            setattr(row,entry,0)
+            setattr(row, entry, None)
         elif cols[entry] == 'lstring':
-            setattr(row,entry,'')
+            setattr(row, entry, "")
         elif entry == 'process_id':
-            row.process_id = ilwd.ilwdchar("sim_inspiral:process_id:0")
+            row.process_id = "process:process_id:0"
         elif entry == 'simulation_id':
-            row.simulation_id = ilwd.ilwdchar("sim_inspiral:simulation_id:0")
-        elif entry == 'event_id':
-            row.event_id = ilwd.ilwdchar("sngl_inspiral:event_id:0")
-        else:
-            raise ValueError("Column %s not recognized." %(entry) )
+            row.simulation_id = "sim_inspiral:simulation_id:0"
 
     return row
 

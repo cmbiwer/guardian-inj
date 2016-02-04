@@ -36,6 +36,8 @@ def gracedb_upload_injection(hwinj, ifo_list,
                                   hwinj.waveform_start_time,
                                   hwinj.schedule_time)
 
+    print file_contents
+
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
 
