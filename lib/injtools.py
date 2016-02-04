@@ -7,9 +7,10 @@ This module provides functions for reading input files and performing
 checks on the detector related to hardware injections.
 """
 
+import numpy
 import os.path
 import tempfile
-from glue.ligolw import ligolw, lsctables, table, utils
+from glue.ligolw import ilwd, ligolw, lsctables, table, utils
 #from gpstime import gpstime
 from numpy import loadtxt
 
@@ -150,7 +151,8 @@ def read_waveform(waveform_path, ftype="ascii"):
 
     return waveform
 
-def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
+def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
+                  ftype="sim_inspiral"):
     """ Reads a file that contains meta-data about the waveform file.
 
     Only XML files with a single row of a sim_inspiral table are
@@ -162,6 +164,8 @@ def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
         Path to the metadata file.
     waveform_start_time: float
         GPS start time of the waveform file for when it was generated.
+    schedule_time: float
+        GPS time injection is scheduled to start.
     ftype: str
         Selects what method to use. Must be a string set to "sim_inspiral".
 
@@ -183,7 +187,7 @@ def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
             # if cannot read the XML file then log error and return
             # an empty sim_inspiral XML file as a string
             #log(e)
-            file_contents = create_empty_sim_inspiral_xml()
+            file_contents = create_empty_sim_inspiral_xml(schedule_time)
 
             return file_contents
 
@@ -198,9 +202,12 @@ def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
             # make any assumptions about what the user is trying to do, and
             # return an empty sim_inspiral XML file as a string
             log("sim_inspiral table has more than one row, no meta-data read")
-            file_contents = create_empty_sim_inspiral_xml()
+            file_contents = create_empty_sim_inspiral_xml(schedule_time)
 
             return file_contents
+
+        # keep original geocentric end time to use for RA correction
+        orig_end_time = sim.geocent_end_time
 
         # get corrected geocentric end time
         dt = sim.geocent_end_time - waveform_start_time
@@ -214,8 +221,9 @@ def read_metadata(metadata_path, waveform_start_time, ftype="sim_inspiral"):
         dt = sim.l_end_time - waveform_start_time
         sim.l_end_time = inj.schedule_time + dt
 
-        # FIXME: add RA correction from old script
-        # get correct RA
+        # get corrected RA
+        sidereal_seconds = 86164.09054
+        sim.longitude = ( sim.longitude + (2*numpy.pi/sidereal_seconds) * ( (sim.geocent_end_time-orig_end_time) % sidereal_seconds ) ) % (2*numpy.pi)
 
         # get XML content as a str
         fp = tempfile.NamedTemporaryFile()
@@ -285,8 +293,13 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
     else:
         return None
 
-def create_empty_sim_inspiral_xml():
-    """ Creates a LIGOLW XML file with an empty sim_inspiral table.
+def create_empty_sim_inspiral_xml(geocent_end_time=0.0):
+    """ Creates a string of a LIGOLW XML file with an empty sim_inspiral table.
+
+    Parameters
+    ----------
+    geocent_end_time: float
+        The geocentric end time to add to row in sim_inspiral table.
 
     Retuns
     ----------
@@ -304,6 +317,12 @@ def create_empty_sim_inspiral_xml():
     xmldoc.appendChild(ligolw.LIGO_LW())
     xmldoc.childNodes[0].appendChild(sim_table)
 
+    # add a row with the geocentric end time column filled
+    sim = create_empty_row(lsctables.SimInspiral)
+    sim.geocent_end_time = int(geocent_end_time)
+    sim.geocent_end_time_ns = int(geocent_end_time % 1 * 1e9)
+    sim_table.append(sim)
+
     # get XML content as a str
     fp = tempfile.NamedTemporaryFile()
     xmldoc.write(fp)
@@ -313,6 +332,37 @@ def create_empty_sim_inspiral_xml():
 
     return file_contents
 
+def create_empty_row(obj):
+    """Create an empty sim_inspiral or sngl_inspiral row where the columns have
+    default values of 0.0 for a float, 0 for an int, '' for a string. The ilwd
+    columns have a default where the index is 0.
+    """
 
+    # check if sim_inspiral or sngl_inspiral
+    if obj == lsctables.SimInspiral:
+        row = lsctables.SimInspiral()
+        cols = lsctables.SimInspiralTable.validcolumns
+    else:
+        row = lsctables.SnglInspiral()
+        cols = lsctables.SnglInspiralTable.validcolumns
+
+    # populate columns with default values
+    for entry in cols.keys():
+        if cols[entry] in ['real_4','real_8']:
+            setattr(row,entry,0.)
+        elif cols[entry] == 'int_4s':
+            setattr(row,entry,0)
+        elif cols[entry] == 'lstring':
+            setattr(row,entry,'')
+        elif entry == 'process_id':
+            row.process_id = ilwd.ilwdchar("sim_inspiral:process_id:0")
+        elif entry == 'simulation_id':
+            row.simulation_id = ilwd.ilwdchar("sim_inspiral:simulation_id:0")
+        elif entry == 'event_id':
+            row.event_id = ilwd.ilwdchar("sngl_inspiral:event_id:0")
+        else:
+            raise ValueError("Column %s not recognized." %(entry) )
+
+    return row
 
 
