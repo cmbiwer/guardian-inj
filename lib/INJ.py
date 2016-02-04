@@ -163,7 +163,7 @@ class PREP(GuardState):
 
             #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
-            #gracedb_id = upload_gracedb_injection(hwinj, ezca["ifo"],
+            #gracedb_id = gracedb_upload_injection(hwinj, ezca["ifo"],
             #                                      group=hwinj.schedule_state)
 
             # read waveform file

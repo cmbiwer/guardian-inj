@@ -10,7 +10,7 @@ checks on the detector related to hardware injections.
 import os.path
 import tempfile
 from glue.ligolw import ligolw, lsctables, table, utils
-from gpstime import gpstime
+#from gpstime import gpstime
 from numpy import loadtxt
 
 @lsctables.use_in
@@ -31,7 +31,6 @@ class HardwareInjection(object):
         self.scale_factor = float(scale_factor)
         self.waveform_path = waveform_path
         self.metadata_path = metadata_path
-        self.gracedb_id = None
 
     def __repr__(self):
         return "<" + " ".join(map(str, [self.schedule_time, self.schedule_state])) + " HardwareInjection>"
@@ -172,7 +171,7 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
     """
 
     # sim_inspiral XML file case
-    if ftype="sim_inspiral":
+    if ftype == "sim_inspiral":
 
         # read XML file
         xmldoc = utils.load_filename(metadata_path,
@@ -183,7 +182,7 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
                                     lsctables.SimInspiralTable.tableName)
         if len(sim_table) == 1:
             sim = sim_table[0]
-        else
+        else:
             log("sim_inspiral table has more than one row, no meta-data read")
             return ""
 

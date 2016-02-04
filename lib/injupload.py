@@ -10,7 +10,7 @@ import tempfile
 import ligo.gracedb.rest as gracedb_rest
 from injtools import read_metadata
 
-def upload_gracedb_injection(hwinj, ifo,
+def gracedb_upload_injection(hwinj, ifo_list,
                              pipeline="HardwareInjection", group="Test"):
     """ Uploads an event to GraceDB.
 
@@ -18,6 +18,8 @@ def upload_gracedb_injection(hwinj, ifo,
     ----------
     hwinj: HardwareInjection
         The HardwareInjection event to upload to GraceDB.
+    ifo_list: list
+        A list of the IFOs that should be appended to this event.
 
     Retuns
     ----------
@@ -27,7 +29,7 @@ def upload_gracedb_injection(hwinj, ifo,
     """
 
     # begin GraceDB API
-    client = gracedb_rest.GraceDB()
+    client = gracedb_rest.GraceDb()
 
     # read metadata file
     if hwinj.metadata_path:
@@ -41,7 +43,7 @@ def upload_gracedb_injection(hwinj, ifo,
 
     # upload event to GraceDB
     out = client.createEvent(group, pipeline, hwinj.metadata_path,
-        filecontents=filecontents, insturment=ifo_str,
+        filecontents=file_contents, insturment=ifo_str,
         source_channel="", destination_channel="")
 
     # get GraceDB ID
@@ -61,7 +63,7 @@ def gracedb_upload_message(gracedb_id, message, tagname="analyst comments"):
     """
 
     # begin GraceDB API
-    client = gracedb_rest.GraceDB()
+    client = gracedb_rest.GraceDb()
 
     # append comment to GraceDB entry
     out = client.writeLog(gracedb_id, message, tagname=tagname)
