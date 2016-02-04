@@ -10,7 +10,7 @@ from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
 from injtools import check_exttrig_alert, check_imminent_injection, read_schedule, read_waveform
-from injupload import gracedb_upload_injection
+from injupload import gracedb_upload_injection, gracedb_upload_message
 
 # name of channel to inject transient signals
 model_name = "CAL-INJ"
@@ -48,6 +48,9 @@ global imminent_hwinj
 
 # global variable to hold waveform time series
 global waveform
+
+# global variable to hold GraceDB ID
+global gracedb_id
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
@@ -240,6 +243,8 @@ class SUCCESS(GuardState):
         """
 
         # append success message to GraceDB event
+        message = "This hardware injection was successful."
+        gracedb_upload_message(gracedb_id, message)
 
         return "ENABLED"
 
@@ -258,6 +263,8 @@ class ABORT(GuardState):
         """
 
         # append abort message to GraceDB event
+        message = "This hardware injection was aborted."
+        gracedb_upload_message(gracedb_id, message)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,

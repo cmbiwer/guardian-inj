@@ -11,9 +11,6 @@ import ligo.gracedb.rest as gracedb_rest
 from glue.ligolw import ligolw, lsctables, table, utils
 from injtools import read_metadata
 
-# URL to injection SVN that contains waveform files
-injection_svn_url = "https://daqsvn.ligo-la.caltech.edu/svn/injection/hwinj/Details/"
-
 def upload_gracedb_injection(hwinj, ifo,
                              pipeline="HardwareInjection", group="Test"):
     """ Uploads an event to GraceDB.
@@ -49,8 +46,8 @@ def upload_gracedb_injection(hwinj, ifo,
 
     return gracedb_id
 
-def upload_gracedb_message(gracedb_id, message):
-    """ Adds an analyst comment to the GraceDB entry.
+def gracedb_upload_message(gracedb_id, message, tagname="analyst comments"):
+    """ Adds a message to the GraceDB entry.
 
     Parameters
     ----------
@@ -64,5 +61,5 @@ def upload_gracedb_message(gracedb_id, message):
     client = gracedb_rest.GraceDB()
 
     # append comment to GraceDB entry
-    out = client.writeLog(gracedb_id, message, tagname="analyst comments")
+    out = client.writeLog(gracedb_id, message, tagname=tagname)
 
