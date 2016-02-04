@@ -32,19 +32,16 @@ def gracedb_upload_injection(hwinj, ifo_list,
     client = gracedb_rest.GraceDb()
 
     # read metadata file
-    if hwinj.metadata_path:
-        file_contents = read_metadata(hwinj.metadata_path,
-                                      hwinj.waveform_start_time)
-    else:
-        file_contents = ""
+    file_contents = read_metadata(hwinj.metadata_path,
+                                  hwinj.waveform_start_time)
 
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
 
     # upload event to GraceDB
     out = client.createEvent(group, pipeline, hwinj.metadata_path,
-        filecontents=file_contents, insturment=ifo_str,
-        source_channel="", destination_channel="")
+                             filecontents=file_contents, instrument=ifo_str,
+                             source_channel="", destination_channel="")
 
     # get GraceDB ID
     gracedb_id = out.json()["graceid"]

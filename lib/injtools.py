@@ -174,8 +174,27 @@ def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
     if ftype == "sim_inspiral":
 
         # read XML file
-        xmldoc = utils.load_filename(metadata_path,
-                                     contenthandler=ContentHandler)
+        try:
+            xmldoc = utils.load_filename(metadata_path,
+                                         contenthandler=ContentHandler)
+        except IOError as e:
+
+            cols = lsctables.SimInspiralTable.validcolumns.keys()
+            sim_table_new = lsctables.New(lsctables.SimInspiralTable, cols)
+
+            # create new LIGOLW XML document and add the new sim_inspiral table
+            xmldoc = ligolw.Document()
+            xmldoc.appendChild(ligolw.LIGO_LW())
+            xmldoc.childNodes[0].appendChild(sim_table_new)
+
+            # get XML content as a str
+            fp = tempfile.NamedTemporaryFile()
+            xmldoc.write(fp)
+            fp.seek(0)
+            file_contents = fp.read()
+            fp.close()
+
+            return file_contents
 
         # get first sim_inspiral row
         sim_table = table.get_table(xmldoc,
