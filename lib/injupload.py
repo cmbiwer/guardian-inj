@@ -50,21 +50,19 @@ def upload_gracedb_injection(hwinj, ifo,
     return gracedb_id
 
 def upload_gracedb_message(gracedb_id, message):
-    """ Uploads an event to GraceDB.
+    """ Adds an analyst comment to the GraceDB entry.
 
     Parameters
     ----------
-    inj: Injection
-        The Injection instance to upload to GraceDB.
+    gracedb_id: str
+        The GraceDB ID of the entry to be appended.
+    message: str
+        The message to be appended to the GraceDB ID entry.
     """
 
-    # FIXME: hardcoded CBC waveforms for development
-    # add URL to waveform and parameter files
-    waveform_url = injection_svn_url + "/Inspiral/" + ifo + "/" + basename(inj.waveform_path)
-    metadata_url = injection_svn_url + "/Inspiral/" + basename(inj.metadata_path)
-    message  = ""
-    message += "<a href="+waveform_url+">waveform file</a>"
-    message += "<br>"
-    message += "<a href="+metadata_url+">original XML parameter file</a>"
-    out2 = client.writeLog(graceid, message, tagname="analyst comments")
+    # begin GraceDB API
+    client = gracedb_rest.GraceDB()
+
+    # append comment to GraceDB entry
+    out = client.writeLog(gracedb_id, message, tagname="analyst comments")
 
