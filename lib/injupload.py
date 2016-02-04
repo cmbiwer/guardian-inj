@@ -30,7 +30,8 @@ def upload_gracedb_injection(hwinj, ifo,
     client = gracedb_rest.GraceDB()
 
     # read metadata file
-    file_contents = read_metadata(hwinj.metadata_path)
+    file_contents = read_metadata(hwinj.metadata_path,
+                                  hwinj.waveform_start_time)
 
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
