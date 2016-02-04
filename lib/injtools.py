@@ -46,7 +46,7 @@ class HardwareInjection(object):
         Where IFO is the observatory, TAG is an arbitrary string that does not
         contain "-", GPS_START_TIME is the start time of the waveform file,
         DURATION is the length in seconds of the waveform file, and EXT is
-        and arbitrary file extension.
+        an arbitrary file extension.
 
         Returns
         ----------
