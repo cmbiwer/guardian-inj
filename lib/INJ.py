@@ -95,6 +95,8 @@ class IDLE(GuardState):
     alerts and if there is an imminent hardware injection.
 
     An imminment hardware injection is defined by imminent_wait_time in seconds.
+    If an imminent hardware injection is found then there will be a jump transition
+    to the PREP state.
 
     An external alert will cause a jump transition to the EXTTRIG_ALERT state if
     it is within exttrig_wait_time seconds.
@@ -139,7 +141,9 @@ class PREP(GuardState):
     It will then continuously run PREP.run until its nearly time to inject. Once
     the current GPS time is within awg_wait_time of the start of the injection,
     then it will check if the detector is locked and in the desired observing
-    mode. If it is then there will be a jump transition to the injection type's
+    mode.
+
+    If it is then there will be a jump transition to the injection type's
     state, else there will be a jump transition to the ABORT state.
     """
 
@@ -212,7 +216,7 @@ class CBC(GuardState):
         if retcode:
             return "ABORT"
         else:
-            return "SUCESS"
+            return "SUCCESS"
 
 class SUCCESS(GuardState):
     """ The SUCCESS state is an intermediary state for an injection that was
