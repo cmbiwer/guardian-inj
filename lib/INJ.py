@@ -44,14 +44,14 @@ schedule_path = "fake_schedule"
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
 
-# global variable for imminent HardwareInjection
-global imminent_hwinj
+# declare variable for imminent HardwareInjection
+imminent_hwinj = None
 
-# global variable to hold waveform time series
-global waveform
+# declare variable to hold waveform time series
+waveform = None
 
-# global variable to hold GraceDB ID
-global gracedb_id
+# declare variable to hold GraceDB ID
+gracedb_id = None
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
