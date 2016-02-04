@@ -335,6 +335,11 @@ def create_empty_sim_inspiral_xml(geocent_end_time=0.0):
 def create_empty_sim_inspiral_row():
     """ Create an empty sim_inspiral or sngl_inspiral row where the columns
     have default values of None for a float.
+
+    Retuns
+    ----------
+    row: SimInspiral
+        An empty sim_inspiral row.
     """
 
     # create sim_inspiral row
