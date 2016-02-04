@@ -4,7 +4,7 @@ This is a repository for developing a Guardian node manager to perform hardware 
 
 Documentation is not accessible by the public at the moment. For more information on Guardian see: https://dcc.ligo.org/LIGO-T1500292
 
-And here is a link to the suspensions guardian node manager: https://redoubt.ligo-wa.caltech.edu/svn/cds_user_apps/trunk/sus/common/guardian
+And here is a link to the suspensions guardian node manager as an example of an already implemented project: https://redoubt.ligo-wa.caltech.edu/svn/cds_user_apps/trunk/sus/common/guardian
 
 ## dependencies
 
