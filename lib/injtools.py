@@ -7,9 +7,16 @@ This module provides functions for reading input files and performing
 checks on the detector related to hardware injections.
 """
 
+import tempfile
 from numpy import loadtxt
 from gpstime import gpstime
 from subprocess import Popen, PIPE
+
+@lsctables.use_in
+class ContentHandler(ligolw.LIGOLWContentHandler):
+    """ Setup content handler for LIGOLW XML files.
+    """
+    pass
 
 class HardwareInjection(object):
     """ A class representing a single hardware injection.
@@ -114,6 +121,66 @@ def read_waveform(waveform_path, ftype="ascii"):
         waveform = loadtxt(waveform_path)
 
     return waveform
+
+def read_metadata(metadata_path, ascii_file_start_time, ftype="sim_inspiral"):
+    """ Reads a file that contains meta-data about the waveform file.
+    Only XML files with a single row of a sim_inspiral table are
+    supported.
+
+    GraceDB only supports uploading SimInspiral files.
+
+    Parameters
+    ----------
+    metadata_path: str
+        Path to the metadata file.
+    ftype: str
+        Selects what method to use. Must be a string set to "sim_inspiral".
+
+    Retuns
+    ----------
+    file_contents: str
+        Returns a string that contains a XML file with a sim_inspiral table.
+    """
+
+    # sim_inspiral XML file case
+    if ftype="sim_inspiral":
+
+        # read XML file
+        xmldoc = utils.load_filename(metadata_path,
+                                     contenthandler=ContentHandler)
+
+        # get first sim_inspiral row
+        sim_table = table.get_table(xmldoc,
+                                    lsctables.SimInspiralTable.tableName)
+        if len(sim_table) == 1:
+            sim = sim_table[0]
+        else
+            return ""
+
+        # get corrected geocentric end time
+        dt = sim.geocent_end_time - ascii_file_start_time
+        sim.geocent_end_time = inj.schedule_time + dt
+
+        # get corrected H1 end time
+        dt = sim.h_end_time - ascii_file_start_time
+        sim.h_end_time = inj.schedule_time + dt
+
+        # get corrected L1 end time
+        dt = sim.l_end_time - ascii_file_start_time
+        sim.l_end_time = inj.schedule_time + dt
+
+        # FIXME: add RA correction from old script
+        # get correct RA
+
+        # get XML content as a str
+        fp = tempfile.NamedTemporaryFile()
+        xmldoc.write(fp)
+        fp.seek(0)
+        file_contents = fp.read()
+        fp.close()
+
+        return file_contents
+
 
 def check_imminent_injection(hwinj_list, imminent_wait_time):
     """ Find the most imminent hardware injection. The injection must

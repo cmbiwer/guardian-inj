@@ -94,12 +94,12 @@ class IDLE(GuardState):
     """ The IDLE state continuously loops IDLE.run checking for external
     alerts and if there is an imminent hardware injection.
 
-    An imminment hardware injection is defined by imminent_wait_time in seconds.
-    If an imminent hardware injection is found then there will be a jump transition
-    to the PREP state.
+    An imminment hardware injection is defined by imminent_wait_time in
+    seconds. If an imminent hardware injection is found then there will be a
+    jump transition to the PREP state.
 
-    An external alert will cause a jump transition to the EXTTRIG_ALERT state if
-    it is within exttrig_wait_time seconds.
+    An external alert will cause a jump transition to the EXTTRIG_ALERT state
+    if it is within exttrig_wait_time seconds.
     """
 
     def run(self):
@@ -107,21 +107,23 @@ class IDLE(GuardState):
         """
 
         # check if external alert
-        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
+                                                 exttrig_wait_time)
         if exttrig_alert_time:
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
         hwinj_list = read_schedule(schedule_path)
-        imminent_hwinj = check_imminent_injection(hwinj_list, imminent_wait_time)
+        imminent_hwinj = check_imminent_injection(hwinj_list,
+                                                  imminent_wait_time)
         if imminent_hwinj:
             return "PREP"
 
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
     if the most recent external alert is not within exttrig_wait_time seconds.
-    Once the external alert is far enough in the past there will be a jump transition
-    to the ENABLED state.
+    Once the external alert is far enough in the past there will be a jump
+    transition to the ENABLED state.
     """
 
     def run(self):
@@ -129,19 +131,20 @@ class EXTTRIG_ALERT(GuardState):
         """
 
         # check if not external alert
-        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
+                                                 exttrig_wait_time)
         if not exttrig_alert_time:
             return "ENABLED"
 
 class PREP(GuardState):
-    """ The PREP state will upload a hardware injection event to GraceDB and read
-    the waveform file upon entry. It will also set the legacy TINJ_TYPE EPICs
-    record for the desired injection type at this time.
+    """ The PREP state will upload a hardware injection event to GraceDB and
+    read the waveform file upon entry. It will also set the legacy TINJ_TYPE
+    EPICs record for the desired injection type at this time.
 
-    It will then continuously run PREP.run until its nearly time to inject. Once
-    the current GPS time is within awg_wait_time of the start of the injection,
-    then it will check if the detector is locked and in the desired observing
-    mode.
+    It will then continuously run PREP.run until its nearly time to inject.
+    Once the current GPS time is within awg_wait_time of the start of the
+    injection, then it will check if the detector is locked and in the desired
+    observing mode.
 
     If it is then there will be a jump transition to the injection type's
     state, else there will be a jump transition to the ABORT state.
@@ -155,8 +158,9 @@ class PREP(GuardState):
         try:
 
             #! FIXME: commented out for dev
-            # upload hardware injection to gracedb
-            #gracedb_upload_injection(imminent_hwinj)
+            # upload hardware injection to GraceDB
+            #gracedb_id = upload_gracedb_injection(hwinj, ezca["ifo"],
+            #                                      group=hwinj.schedule_state)
 
             # read waveform file
             waveform = read_waveform(imminent_hwinj.waveform_path)
@@ -165,6 +169,9 @@ class PREP(GuardState):
             # legacy of the old setup to set TINJ_TYPE
             tinj_type_dict = {
                 "CBC" : 1,
+                "Burst" : 2,
+                "Stochastic" : 3,
+                "DetChar" : 4,
             }
             #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
@@ -178,25 +185,28 @@ class PREP(GuardState):
         """
 
         # check if external alert
-        # in the PREP state if we find an external alert we jump to the ABORT state first
-        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        # in the PREP state if we find an external alert we jump to the ABORT
+        # state first
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
+                                                 exttrig_wait_time)
         if exttrig_alert_time:
             return "ABORT"
 
-        # check if hardware injection is imminent enough to call awg for injection
+        # check if hardware injection is imminent enough to call awg
         if check_imminent_injection([imminent_hwinj], awg_wait_time):
 
             # check if detector is locked
             if ezca.read(lock_channel_name) == 1:
 
-                # check if detector in desired observing mode and make jump transition
+                # check if detector in desired observing mode and
+                # then make a jump transition
                 latch = ezca.read(obs_channel_name)
                 if latch == 1 and imminent_hwinj.observation_mode == 1:
                     return hwinj.schedule_state
                 elif latch == 0 and imminent_hwinj.observation_mode == 0:
                     return hwinj.schedule_state
 
-            # if detector is not locked or not in desired observing mode then abort
+            # if detector not locked or not desired observing mode then abort
             return "ABORT"
 
 class CBC(GuardState):
@@ -209,7 +219,9 @@ class CBC(GuardState):
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
-        #retcode = awg_inject(exc_channel_name, waveform, imminent_hwinj.schedule_time, sample_rate, scale_factor=scale_factor)
+        #retcode = awg_inject(exc_channel_name, waveform,
+        #                     imminent_hwinj.schedule_time, sample_rate,
+        #                     scale_factor=scale_factor)
         retcode = 1
 
         # jump transition to post-injection state
@@ -236,9 +248,9 @@ class ABORT(GuardState):
     successfully performed. There is a jump transition to the ENABLED state.
 
     A hardware injection could have been aborted for several reasons including
-    but not limited to incorrect types in schedule file, could not read waveform
-    file, an external alert was recieved in the PREP state, or the detector is
-    not locked.
+    but not limited to incorrect types in schedule file, could not read
+    waveform file, an external alert was recieved in the PREP state, or the
+    detector is not locked.
     """
 
     def main(self):
@@ -248,7 +260,8 @@ class ABORT(GuardState):
         # append abort message to GraceDB event
 
         # check if external alert
-        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name, exttrig_wait_time)
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
+                                                 exttrig_wait_time)
         if exttrig_alert_time:
             return "EXTTRIG_ALERT"
 
