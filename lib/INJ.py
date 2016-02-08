@@ -9,7 +9,7 @@ This module defines the behavior for all transient injections.
 import os.path
 from gpstime import gpstime
 from guardian import GuardState
-from injawg import awg_inject
+from inj_awg import awg_inject
 from inj_io import read_schedule, read_waveform
 from inj_det import check_exttrig_alert
 from inj_types import check_imminent_injection
