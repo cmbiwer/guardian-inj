@@ -14,6 +14,8 @@ You will need v1.19 of the GraceDB python API. You can get the package here: htt
 
 Note that when you install the GraceDB python API it looks like there is no ``ligo/__init__.py`` file so you will have to create a blank file in order to import properly.
 
+You will also v1.49.1 of the glue python package. You can get the package here: http://software.ligo.org/lscsoft/source/glue-1.49.1.tar.gz
+
 ## how to run
 
 First clone the repository and change directory into the top level of the cloned repository.
