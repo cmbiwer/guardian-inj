@@ -10,7 +10,6 @@ observation_mode = 0
 scale_factor = 1.0
 waveform_path = "H1-TEST-0-0.txt"
 metadata_path = "H1-TEST-0-0.xml"
-metadata_path = "None"
 
 # create a new HardwareInjection
 hwinj = HardwareInjection(schedule_time, schedule_state, observation_mode,
