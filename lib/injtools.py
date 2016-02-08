@@ -182,14 +182,12 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         try:
             xmldoc = utils.load_filename(metadata_path,
                                          contenthandler=ContentHandler)
-        except IOError as e:
 
-            # if cannot read the XML file then log error and return
-            # an empty sim_inspiral XML file as a string
-            print e
+        # if cannot read the XML file then log error and return
+        # an empty sim_inspiral XML file as a string
+        except IOError as e:
             log("Error: "+e)
             file_contents = create_empty_sim_inspiral_xml(schedule_time)
-
             return file_contents
 
         # get first sim_inspiral row
@@ -197,14 +195,13 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
                                     lsctables.SimInspiralTable.tableName)
         if len(sim_table) == 1:
             sim = sim_table[0]
-        else:
 
-            # if more than one sim_inspiral row then log message, do not
-            # make any assumptions about what the user is trying to do, and
-            # return an empty sim_inspiral XML file as a string
+        # if more than one sim_inspiral row then log message, do not
+        # make any assumptions about what the user is trying to do, and
+        # return an empty sim_inspiral XML file as a string
+        else:
             log("sim_inspiral table has more than one row, no meta-data read")
             file_contents = create_empty_sim_inspiral_xml(schedule_time)
-
             return file_contents
 
         # keep original geocentric end time to use for RA correction
