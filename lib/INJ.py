@@ -50,14 +50,14 @@ schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
 
+# declare variable to hold immiment GraceDB ID
+gracedb_id = None
+
 # declare variable for imminent HardwareInjection
 imminent_hwinj = None
 
 # declare variable to hold imminent waveform time series
 waveform = None
-
-# declare variable to hold immiment GraceDB ID
-gracedb_id = None
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
@@ -116,6 +116,9 @@ class IDLE(GuardState):
         """ Execute method in a loop.
         """
 
+        # use the global variables so they can used in multiple states
+        global imminent_hwinj
+
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
@@ -130,7 +133,6 @@ class IDLE(GuardState):
 
             # jump transition to PREP state if imminent hardware injection
             if imminent_hwinj:
-                print imminent_hwinj.waveform_path, imminent_hwinj, imminent_hwinj.schedule_state
                 return "PREP"
 
         # if there is an error reading the schedule then just retry PREP.run
@@ -172,11 +174,15 @@ class PREP(GuardState):
         """ Execute method once.
         """
 
+        # use the global variables so they can used in multiple states
+        global gracedb_id
+        global imminent_hwinj
+        global waveform
+
         # try to upload to GraceDB and read waveform
         try:
 
             # read waveform file
-            print imminent_hwinj.waveform_path, imminent_hwinj, imminent_hwinj.schedule_state
             waveform = read_waveform(imminent_hwinj.waveform_path)
 
             #! FIXME: commented out for dev
@@ -256,6 +262,9 @@ class CBC(GuardState):
         """ Execute method once.
         """
 
+        # use the global variables so they can used in multiple states
+        global waveform
+
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
@@ -280,6 +289,9 @@ class BURST(GuardState):
         """ Execute method once.
         """
 
+        # use the global variables so they can used in multiple states
+        global waveform
+
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
@@ -303,6 +315,9 @@ class STOCHASTIC(GuardState):
     def main(self):
         """ Execute method once.
         """
+
+        # use the global variables so they can used in multiple states
+        global waveform
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
@@ -329,6 +344,9 @@ class DETCHAR(GuardState):
         """ Execute method once.
         """
 
+        # use the global variables so they can used in multiple states
+        global waveform
+
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
@@ -353,6 +371,9 @@ class SUCCESS(GuardState):
     def main(self):
         """ Execute method once.
         """
+
+        # use the global variables so they can used in multiple states
+        global gracedb_id
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
@@ -386,6 +407,9 @@ class ABORT(GuardState):
     def main(self):
         """ Execute method once.
         """
+
+        # use the global variables so they can used in multiple states
+        global gracedb_id
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
