@@ -120,12 +120,19 @@ class IDLE(GuardState):
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
-        hwinj_list = read_schedule(schedule_path)
-        imminent_hwinj = check_imminent_injection(hwinj_list,
+        try:
+            hwinj_list = read_schedule(schedule_path)
+            imminent_hwinj = check_imminent_injection(hwinj_list,
                                                   imminent_wait_time)
-        if imminent_hwinj:
-            return "PREP"
 
+            # jump transition to PREP state if imminent hardware injection
+            if imminent_hwinj:
+                return "PREP"
+
+        # if there is an error reading the schedule then just retry PREP.run
+        except Excetion as e:
+            log("Error: "+e)
+            
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
     if the most recent external alert is not within exttrig_wait_time seconds.
@@ -194,8 +201,7 @@ class PREP(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
-            message = "Found external alert so aborting hardware injection."
-            log(message)
+            log("Found external alert so aborting hardware injection.")
             return "ABORT"
 
         # check if hardware injection is imminent enough to call awg
@@ -220,8 +226,7 @@ class PREP(GuardState):
                     return hwinj.schedule_state
 
             # if detector not locked or not desired observing mode then abort
-            message = "Detector is not locked or in desired observing mode."
-            log(message)
+            log("Detector is not locked or in desired observing mode.")
             return "ABORT"
 
         # get the current GPS time
@@ -231,8 +236,7 @@ class PREP(GuardState):
         # if it has already past; this is a safe guard against long execution
         # times when uplaoding to GraceDB or reading large waveform files
         if current_gps_time > imminent_hwinj.schedule_time:
-            message = "Most imminent hardware injection is in the past."
-            log(message)
+            log("Most imminent hardware injection is in the past.")
             return "ABORT"
 
 class CBC(GuardState):
@@ -255,8 +259,7 @@ class CBC(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
             return "ABORT"
 
 class BURST(GuardState):
@@ -279,8 +282,7 @@ class BURST(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
             return "ABORT"
 
 class STOCHASTIC(GuardState):
@@ -303,8 +305,7 @@ class STOCHASTIC(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
             return "ABORT"
 
 class DETCHAR(GuardState):
@@ -328,8 +329,7 @@ class DETCHAR(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
             return "ABORT"
 
 class SUCCESS(GuardState):
@@ -355,8 +355,7 @@ class SUCCESS(GuardState):
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
         except Exception as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
 
         return "ENABLED"
 
@@ -388,8 +387,7 @@ class ABORT(GuardState):
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
         except Exception as e:
-            message = "Error: "+e
-            log(message)
+            log("Error: "+e)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
