@@ -141,8 +141,8 @@ class EXTTRIG_ALERT(GuardState):
             return "ENABLED"
 
 class PREP(GuardState):
-    """ The PREP state will upload a hardware injection event to GraceDB and
-    read the waveform file upon entry.
+    """ The PREP state will read the waveform file nad upload a hardware
+    injection event to GraceDB upon entry.
 
     It will then continuously run PREP.run until its nearly time to inject.
     Once the current GPS time is within awg_wait_time of the start of the
@@ -160,12 +160,12 @@ class PREP(GuardState):
         # try to upload to GraceDB and read waveform
         try:
 
+            # read waveform file
+            waveform = read_waveform(imminent_hwinj.waveform_path)
+
             # upload hardware injection to GraceDB
             gracedb_id = gracedb_upload_injection(hwinj, ezca["ifo"],
                                                   group=hwinj.schedule_state)
-
-            # read waveform file
-            waveform = read_waveform(imminent_hwinj.waveform_path)
 
             #! FIXME: commented out for dev
             # legacy of the old setup to set TINJ_TYPE
@@ -216,6 +216,15 @@ class PREP(GuardState):
                     return hwinj.schedule_state
 
             # if detector not locked or not desired observing mode then abort
+            return "ABORT"
+
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert("now").gps()
+
+        # check if most imminent injection has passed and jump tp ABORT state
+        # if it has already past; this is a safe guard against long execution
+        # times when uplaoding to GraceDB or reading large waveform files
+        if current_gps_time > imminent_hwinj.schedule_time:
             return "ABORT"
 
 class CBC(GuardState):
