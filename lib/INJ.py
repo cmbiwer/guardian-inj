@@ -83,9 +83,6 @@ class DISABLED(GuardState):
         """ Execute method in a loop.
         """
 
-        #! FIXME: commented out for dev
-        return "ENABLED"
-
         return
 
 class ENABLED(GuardState):
@@ -187,8 +184,8 @@ class PREP(GuardState):
 
             #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
-            #gracedb_id = gracedb_upload_injection(hwinj, ezca["ifo"],
-            #                                      group=hwinj.schedule_state)
+            gracedb_id = gracedb_upload_injection(imminent_hwinj, ezca.ifo,
+                                                  group=imminent_hwinj.schedule_state)
 
             #! FIXME: commented out for dev
             # legacy of the old setup to set TINJ_TYPE
@@ -438,10 +435,14 @@ class ABORT(GuardState):
 
 # define directed edges that connect guardian states
 edges = (
+    ("DISABLED", "ENABLED"),
     ("ENABLED", "IDLE"),
     ("IDLE", "EXTTRIG_ALERT"),
     ("IDLE", "PREP"),
     ("PREP", "CBC"),
+    ("PREP", "BURST"),
+    ("PREP", "STOCHASTIC"),
+    ("PREP", "DETCHAR"),
     ("PREP", "ABORT"),
     ("CBC", "SUCCESS"),
     ("CBC", "ABORT"),
