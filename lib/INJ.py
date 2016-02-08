@@ -245,10 +245,9 @@ class CBC(GuardState):
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #retcode = awg_inject(exc_channel_name, waveform,
-            #                     imminent_hwinj.schedule_time, sample_rate,
-            #                     scale_factor=scale_factor)
-            retcode = 1
+            #awg_inject(exc_channel_name, waveform,
+            #           imminent_hwinj.schedule_time, sample_rate,
+            #           scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -270,10 +269,9 @@ class BURST(GuardState):
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #retcode = awg_inject(exc_channel_name, waveform,
-            #                     imminent_hwinj.schedule_time, sample_rate,
-            #                     scale_factor=scale_factor)
-            retcode = 1
+            #awg_inject(exc_channel_name, waveform,
+            #           imminent_hwinj.schedule_time, sample_rate,
+            #           scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -295,10 +293,9 @@ class STOCHASTIC(GuardState):
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #retcode = awg_inject(exc_channel_name, waveform,
-            #                     imminent_hwinj.schedule_time, sample_rate,
-            #                     scale_factor=scale_factor)
-            retcode = 1
+            #awg_inject(exc_channel_name, waveform,
+            #           imminent_hwinj.schedule_time, sample_rate,
+            #           scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -321,10 +318,9 @@ class DETCHAR(GuardState):
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #retcode = awg_inject(exc_channel_name, waveform,
-            #                     imminent_hwinj.schedule_time, sample_rate,
-            #                     scale_factor=scale_factor)
-            retcode = 1
+            #awg_inject(exc_channel_name, waveform,
+            #           imminent_hwinj.schedule_time, sample_rate,
+            #           scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"

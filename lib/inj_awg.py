@@ -39,6 +39,4 @@ def awg_inject(channel_name, timeseries, gps_start_time,
                             rate=sample_rate, start=gps_start_time)
     awg_exc.start(ramptime=ramp_time, wait=True)
     awg_exc.stop()
-    retcode = 0
 
-    return retcode
