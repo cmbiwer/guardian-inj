@@ -26,12 +26,6 @@ def awg_inject(channel_name, timeseries, gps_start_time,
         Factor that will be multipled to the time series before injection.
     ramp_time: str
         Time to ramp up the signal.
-
-    Returns
-    ----------
-    retcode: int
-        The exit code of injecting. 0 should mean successful and non-zero
-        should mean failure.
     """
 
     # call awg and inject the time series
