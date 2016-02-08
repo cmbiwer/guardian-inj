@@ -7,6 +7,8 @@ This module defines the behavior for all transient injections.
 """
 
 import os.path
+import sys
+import traceback
 from gpstime import gpstime
 from guardian import GuardState
 from inj_awg import awg_inject
@@ -131,8 +133,9 @@ class IDLE(GuardState):
                 return "PREP"
 
         # if there is an error reading the schedule then just retry PREP.run
-        except Excetion as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
@@ -190,8 +193,9 @@ class PREP(GuardState):
             #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
         # if there was an error add it to the log and ABORT the injection
-        except Exception as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             return "ABORT"
 
     def run(self):
@@ -260,8 +264,9 @@ class CBC(GuardState):
             return "SUCCESS"
 
         # if there was a failure then jump transition to ABORT state
-        except Expection as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             return "ABORT"
 
 class BURST(GuardState):
@@ -283,8 +288,9 @@ class BURST(GuardState):
             return "SUCCESS"
 
         # if there was a failure then jump transition to ABORT state
-        except Expection as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             return "ABORT"
 
 class STOCHASTIC(GuardState):
@@ -306,8 +312,9 @@ class STOCHASTIC(GuardState):
             return "SUCCESS"
 
         # if there was a failure then jump transition to ABORT state
-        except Expection as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             return "ABORT"
 
 class DETCHAR(GuardState):
@@ -330,8 +337,9 @@ class DETCHAR(GuardState):
             return "SUCCESS"
 
         # if there was a failure then jump transition to ABORT state
-        except Expection as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             return "ABORT"
 
 class SUCCESS(GuardState):
@@ -356,8 +364,9 @@ class SUCCESS(GuardState):
         try:
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
-        except Exception as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
 
         return "ENABLED"
 
@@ -388,8 +397,9 @@ class ABORT(GuardState):
         try:
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
-        except Exception as e:
-            log("Error: " + e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
