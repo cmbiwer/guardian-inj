@@ -47,10 +47,10 @@ sample_rate = 16384
 # declare variable for imminent HardwareInjection
 imminent_hwinj = None
 
-# declare variable to hold waveform time series
+# declare variable to hold imminent waveform time series
 waveform = None
 
-# declare variable to hold GraceDB ID
+# declare variable to hold immiment GraceDB ID
 gracedb_id = None
 
 class INIT(GuardState):
