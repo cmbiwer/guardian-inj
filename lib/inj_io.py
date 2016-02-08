@@ -7,7 +7,9 @@ This module provides functions for reading input files.
 """
 
 import numpy
+import sys
 import tempfile
+import traceback
 from glue.ligolw import ilwd, ligolw, lsctables, table, utils
 from gpstime import gpstime
 from inj_types import HardwareInjection
@@ -152,8 +154,9 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
 
         # if cannot read the XML file then log error and return
         # an empty sim_inspiral XML file as a string
-        except IOError as e:
-            #log("Error: "+e)
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
             file_contents = create_empty_sim_inspiral_xml(schedule_time)
             return file_contents
 
