@@ -8,7 +8,7 @@ This module provides functions for uploading hardware injections to GraceDB.
 
 import tempfile
 import ligo.gracedb.rest as gracedb_rest
-from injio import read_metadata
+from inj_io import read_metadata
 
 def gracedb_upload_injection(hwinj, ifo_list,
                              pipeline="HardwareInjection", group="Test"):

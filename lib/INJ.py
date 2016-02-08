@@ -9,9 +9,9 @@ This module defines the behavior for all transient injections.
 from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
-from injio import read_schedule, read_waveform
-from injdet import check_exttrig_alert, check_imminent_injection
-from injupload import gracedb_upload_injection, gracedb_upload_message
+from inj_io import read_schedule, read_waveform
+from inj_det import check_exttrig_alert, check_imminent_injection
+from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
 # name of channel to inject transient signals
 model_name = "CAL-PINJX"
