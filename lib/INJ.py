@@ -184,6 +184,7 @@ class PREP(GuardState):
                 "Burst" : 2,
                 "Stochastic" : 3,
                 "DetChar" : 4,
+                "Test" : 5,
             }
             #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
