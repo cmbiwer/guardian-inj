@@ -186,7 +186,8 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
 
             # if cannot read the XML file then log error and return
             # an empty sim_inspiral XML file as a string
-            #log(e)
+            print e
+            log("Error: "+e)
             file_contents = create_empty_sim_inspiral_xml(schedule_time)
 
             return file_contents
@@ -210,20 +211,24 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         orig_end_time = sim.geocent_end_time
 
         # get corrected geocentric end time
-        dt = sim.geocent_end_time - waveform_start_time
-        sim.geocent_end_time = inj.schedule_time + dt
+        if type(sim.geocent_end_time) == int:
+            dt = sim.geocent_end_time - waveform_start_time
+            sim.geocent_end_time = schedule_time + dt
+
+            # get corrected RA
+            if type(sim.longitude) == float:
+                sidereal_seconds = 86164.09054
+                sim.longitude = ( sim.longitude + (2*numpy.pi/sidereal_seconds) * ( (sim.geocent_end_time-orig_end_time) % sidereal_seconds ) ) % (2*numpy.pi)
 
         # get corrected H1 end time
-        dt = sim.h_end_time - waveform_start_time
-        sim.h_end_time = inj.schedule_time + dt
+        if type(sim.h_end_time) == int:
+            dt = sim.h_end_time - waveform_start_time
+            sim.h_end_time = schedule_time + dt
 
         # get corrected L1 end time
-        dt = sim.l_end_time - waveform_start_time
-        sim.l_end_time = inj.schedule_time + dt
-
-        # get corrected RA
-        sidereal_seconds = 86164.09054
-        sim.longitude = ( sim.longitude + (2*numpy.pi/sidereal_seconds) * ( (sim.geocent_end_time-orig_end_time) % sidereal_seconds ) ) % (2*numpy.pi)
+        if type(sim.l_end_time) == int:
+            dt = sim.l_end_time - waveform_start_time
+            sim.l_end_time = schedule_time + dt
 
         # get XML content as a str
         fp = tempfile.NamedTemporaryFile()
