@@ -91,8 +91,11 @@ class ENABLED(GuardState):
     state.
     """
 
-    def main(self):
-        """ Execute method once.
+    # automatically assign edges from every other state
+    goto = True
+
+    def run(self):
+        """ Execute method in a loop.
         """
 
         return "IDLE"
