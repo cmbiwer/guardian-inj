@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-from injtools import HardwareInjection
-from injupload import gracedb_upload_injection, gracedb_upload_message
+from inj_types import HardwareInjection
+from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
 # set some values for attributes
 schedule_time = 32.0
