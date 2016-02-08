@@ -1,2 +1,3 @@
 1148558052 CBC 1 1.0 /ligo/home/christopher.biwer/src/hwinjsvn/Inspiral/{ifo}/coherenttest1_1126257410_{ifo}.out /ligo/home/christopher.biwer/src/hwinjsvn/Inspiral/h1l1coherenttest1_1126257410.xml.gz
 1129484162 CBC 1 1.0 /ligo/home/christopher.biwer/src/hwinjsvn/Inspiral/{ifo}/coherenttest1_1126257410_{ifo}.out /ligo/home/christopher.biwer/src/hwinjsvn/Inspiral/h1l1coherenttest1_1126257410.xml.gz
+1139000083 Test 1 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml
