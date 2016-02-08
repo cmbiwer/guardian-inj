@@ -193,7 +193,6 @@ class PREP(GuardState):
         if exttrig_alert_time:
             message = "Found external alert so aborting hardware injection."
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
         # check if hardware injection is imminent enough to call awg
@@ -220,7 +219,6 @@ class PREP(GuardState):
             # if detector not locked or not desired observing mode then abort
             message = "Detector is not locked or in desired observing mode."
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
         # get the current GPS time
@@ -232,7 +230,6 @@ class PREP(GuardState):
         if current_gps_time > imminent_hwinj.schedule_time:
             message = "Most imminent hardware injection is in the past."
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class CBC(GuardState):
@@ -258,7 +255,6 @@ class CBC(GuardState):
         except Expection as e:
             message = "Error: "+e
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class BURST(GuardState):
@@ -284,7 +280,6 @@ class BURST(GuardState):
         except Expection as e:
             message = "Error: "+e
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class STOCHASTIC(GuardState):
@@ -310,7 +305,6 @@ class STOCHASTIC(GuardState):
         except Expection as e:
             message = "Error: "+e
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class DETCHAR(GuardState):
@@ -337,7 +331,6 @@ class DETCHAR(GuardState):
         except Expection as e:
             message = "Error: "+e
             log(message)
-            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class SUCCESS(GuardState):
@@ -357,8 +350,14 @@ class SUCCESS(GuardState):
         #ezca["TINJ_END_TIME"] = current_gps_time
 
         # append success message to GraceDB event
-        message = "This hardware injection was successful."
-        gracedb_upload_message(gracedb_id, message)
+        # we block this in a try-except statment because if
+        # it cannot connect to GraceDB it could cause guardian to fail
+        try:
+            message = "This hardware injection was successful."
+            gracedb_upload_message(gracedb_id, message)
+        except Exception as e:
+            message = "Error: "+e
+            log(message)
 
         return "ENABLED"
 
@@ -383,9 +382,15 @@ class ABORT(GuardState):
         # legacy of the old setup to set TINJ_END_TIME
         #ezca["TINJ_END_TIME"] = current_gps_time
 
-        # append abort message to GraceDB event
-        message = "This hardware injection was aborted."
-        gracedb_upload_message(gracedb_id, message)
+        # append success message to GraceDB event
+        # we block this in a try-except statment because if
+        # it cannot connect to GraceDB it could cause guardian to fail
+        try:
+            message = "This hardware injection was successful."
+            gracedb_upload_message(gracedb_id, message)
+        except Exception as e:
+            message = "Error: "+e
+            log(message)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
