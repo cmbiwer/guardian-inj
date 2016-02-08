@@ -7,7 +7,6 @@ This module provides functions for reading input files.
 """
 
 import numpy
-import os.path
 import tempfile
 from glue.ligolw import ilwd, ligolw, lsctables, table, utils
 from inj_types import HardwareInjection

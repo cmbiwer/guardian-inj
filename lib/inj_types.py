@@ -6,6 +6,8 @@ INJ types guardian module
 This module provides class for managing hardware injections.
 """
 
+import os.path
+
 class HardwareInjection(object):
     """ A class representing a single hardware injection.
     """
