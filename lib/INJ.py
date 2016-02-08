@@ -132,7 +132,7 @@ class IDLE(GuardState):
 
         # if there is an error reading the schedule then just retry PREP.run
         except Excetion as e:
-            log("Error: "+e)
+            log("Error: " + e)
             
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
@@ -191,7 +191,7 @@ class PREP(GuardState):
 
         # if there was an error add it to the log and ABORT the injection
         except Exception as e:
-            log("Error: "+e)
+            log("Error: " + e)
             return "ABORT"
 
     def run(self):
@@ -261,7 +261,7 @@ class CBC(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            log("Error: "+e)
+            log("Error: " + e)
             return "ABORT"
 
 class BURST(GuardState):
@@ -284,7 +284,7 @@ class BURST(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            log("Error: "+e)
+            log("Error: " + e)
             return "ABORT"
 
 class STOCHASTIC(GuardState):
@@ -307,7 +307,7 @@ class STOCHASTIC(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            log("Error: "+e)
+            log("Error: " + e)
             return "ABORT"
 
 class DETCHAR(GuardState):
@@ -331,7 +331,7 @@ class DETCHAR(GuardState):
 
         # if there was a failure then jump transition to ABORT state
         except Expection as e:
-            log("Error: "+e)
+            log("Error: " + e)
             return "ABORT"
 
 class SUCCESS(GuardState):
@@ -357,7 +357,7 @@ class SUCCESS(GuardState):
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
         except Exception as e:
-            log("Error: "+e)
+            log("Error: " + e)
 
         return "ENABLED"
 
@@ -389,7 +389,7 @@ class ABORT(GuardState):
             message = "This hardware injection was successful."
             gracedb_upload_message(gracedb_id, message)
         except Exception as e:
-            log("Error: "+e)
+            log("Error: " + e)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
