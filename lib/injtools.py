@@ -187,7 +187,7 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         # if cannot read the XML file then log error and return
         # an empty sim_inspiral XML file as a string
         except IOError as e:
-            log("Error: "+e)
+            #log("Error: "+e)
             file_contents = create_empty_sim_inspiral_xml(schedule_time)
             return file_contents
 

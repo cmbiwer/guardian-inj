@@ -205,9 +205,15 @@ class PREP(GuardState):
                 # check if detector in desired observing mode and
                 # then make a jump transition to injection type state
                 latch = ezca.read(obs_channel_name)
-                if latch == 1 and imminent_hwinj.observation_mode == 1:
-                    return hwinj.schedule_state
-                elif latch == 0 and imminent_hwinj.observation_mode == 0:
+                if latch == 1 and imminent_hwinj.observation_mode == 1 or \
+                        latch == 0 and imminent_hwinj.observation_mode == 0:
+
+                    # get the current GPS time
+                    current_gps_time = gpstime.tconvert("now").gps()
+
+                    # legacy of the old setup to set TINJ_START_TIME
+                    #ezca["TINJ_START_TIME"] = current_gps_time
+
                     return hwinj.schedule_state
 
             # if detector not locked or not desired observing mode then abort
@@ -243,6 +249,12 @@ class SUCCESS(GuardState):
         """ Execute method once.
         """
 
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert("now").gps()
+
+        # legacy of the old setup to set TINJ_END_TIME
+        #ezca["TINJ_END_TIME"] = current_gps_time
+
         # append success message to GraceDB event
         message = "This hardware injection was successful."
         gracedb_upload_message(gracedb_id, message)
@@ -262,6 +274,12 @@ class ABORT(GuardState):
     def main(self):
         """ Execute method once.
         """
+
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert("now").gps()
+
+        # legacy of the old setup to set TINJ_END_TIME
+        #ezca["TINJ_END_TIME"] = current_gps_time
 
         # append abort message to GraceDB event
         message = "This hardware injection was aborted."
