@@ -10,7 +10,8 @@ from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
 from inj_io import read_schedule, read_waveform
-from inj_det import check_exttrig_alert, check_imminent_injection
+from inj_det import check_exttrig_alert
+from inj_types import check_imminent_injection
 from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
 # name of channel to inject transient signals
