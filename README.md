@@ -10,7 +10,9 @@ And here is a link to the suspensions guardian node manager as an example of an 
 
 The instructions assume you are running on a work station in the control room of the observatory.
 
-This project requires swig version greater than version 2.0.11 to be installed. And the following python packages to be installed glue, pcaspy, and ligo-gracedb.
+You will need v1.19 of the GraceDB python API. You can get the package here: http://software.ligo.org/lscsoft/source/ligo-gracedb-1.19.tar.gz
+
+Note that when you install the GraceDB python API it looks like there is no ``ligo/__init__.py`` file so you will have to create a blank file in order to import properly.
 
 ## how to run
 
