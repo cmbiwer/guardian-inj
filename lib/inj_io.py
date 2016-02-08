@@ -18,32 +18,6 @@ class ContentHandler(ligolw.LIGOLWContentHandler):
     """
     pass
 
-    @property
-    def waveform_start_time(self):
-        """ Returns the GPS start time of the waveform. This assumes that
-        the waveform file has the following format:
-
-            IFO-TAG-GPS_START_TIME-DURATION.EXT
-
-        Where IFO is the observatory, TAG is an arbitrary string that does not
-        contain "-", GPS_START_TIME is the start time of the waveform file,
-        DURATION is the length in seconds of the waveform file, and EXT is
-        an arbitrary file extension.
-
-        Returns
-        ----------
-        waveform_start_time: float
-            Start time of the waveform file.
-        """
-
-        # get waveform file name
-        filename = os.path.basename(self.waveform_path)
-
-        # parse filename and get start time of waveform file
-        waveform_start_time = filename.split("-")[-2]
-
-        return float(waveform_start_time)
-
 def read_schedule(schedule_path):
     """ Parses schedule file. Schedule file should be a space-delimited file
     with the following ordered columns: GPS start time, INJ state, observing
