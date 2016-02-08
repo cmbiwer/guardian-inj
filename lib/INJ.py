@@ -42,7 +42,7 @@ imminent_wait_time = 600
 awg_wait_time = 30
 
 # path to schedule file
-schedule_path = __file__ + "/schedule_1148558052.txt"
+schedule_path = __file__ + "/schedule/schedule_1148558052.txt"
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
