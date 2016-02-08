@@ -216,7 +216,9 @@ class PREP(GuardState):
                     return hwinj.schedule_state
 
             # if detector not locked or not desired observing mode then abort
-            log("Detector is not locked or in desired observing mode.")
+            message = "Detector is not locked or in desired observing mode."
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
         # get the current GPS time
@@ -226,7 +228,9 @@ class PREP(GuardState):
         # if it has already past; this is a safe guard against long execution
         # times when uplaoding to GraceDB or reading large waveform files
         if current_gps_time > imminent_hwinj.schedule_time:
-            log("Most imminent hardware injection is in the past.")
+            message = "Most imminent hardware injection is in the past."
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
 class CBC(GuardState):
