@@ -9,6 +9,7 @@ This module provides functions for reading input files.
 import numpy
 import tempfile
 from glue.ligolw import ilwd, ligolw, lsctables, table, utils
+from gpstime import gpstime
 from inj_types import HardwareInjection
 
 @lsctables.use_in
@@ -63,7 +64,7 @@ def read_schedule(schedule_path):
     # create a dict for formatting; we allow users to use the {ifo}
     # substring substition in the waveform_path column
     format_dict = {
-        "ifo" : ezca["ifo"]
+        "ifo" : ezca.ifo
     }
 
     # loop over lines in schedule file
