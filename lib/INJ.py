@@ -142,8 +142,7 @@ class EXTTRIG_ALERT(GuardState):
 
 class PREP(GuardState):
     """ The PREP state will upload a hardware injection event to GraceDB and
-    read the waveform file upon entry. It will also set the legacy TINJ_TYPE
-    EPICs record for the desired injection type at this time.
+    read the waveform file upon entry.
 
     It will then continuously run PREP.run until its nearly time to inject.
     Once the current GPS time is within awg_wait_time of the start of the
@@ -161,10 +160,9 @@ class PREP(GuardState):
         # try to upload to GraceDB and read waveform
         try:
 
-            #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
-            #gracedb_id = gracedb_upload_injection(hwinj, ezca["ifo"],
-            #                                      group=hwinj.schedule_state)
+            gracedb_id = gracedb_upload_injection(hwinj, ezca["ifo"],
+                                                  group=hwinj.schedule_state)
 
             # read waveform file
             waveform = read_waveform(imminent_hwinj.waveform_path)
