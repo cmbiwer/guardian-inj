@@ -240,6 +240,70 @@ class CBC(GuardState):
         else:
             return "SUCCESS"
 
+class BURST(GuardState):
+    """ The BURST state will perform a burst hardware injection.
+    """
+
+    def main(self):
+        """ Execute method once.
+        """
+
+        #! FIXME: commented out for dev
+        # call awg to inject the signal
+        #retcode = awg_inject(exc_channel_name, waveform,
+        #                     imminent_hwinj.schedule_time, sample_rate,
+        #                     scale_factor=scale_factor)
+        retcode = 1
+
+        # jump transition to post-injection state
+        if retcode:
+            return "ABORT"
+        else:
+            return "SUCCESS"
+
+class STOCHASTIC(GuardState):
+    """ The STOCHASTIC state will perform a stochastic hardware injection.
+    """
+
+    def main(self):
+        """ Execute method once.
+        """
+
+        #! FIXME: commented out for dev
+        # call awg to inject the signal
+        #retcode = awg_inject(exc_channel_name, waveform,
+        #                     imminent_hwinj.schedule_time, sample_rate,
+        #                     scale_factor=scale_factor)
+        retcode = 1
+
+        # jump transition to post-injection state
+        if retcode:
+            return "ABORT"
+        else:
+            return "SUCCESS"
+
+class DETCHAR(GuardState):
+    """ The DETCHAR state will perform a detector characterization
+     hardware injection.
+    """
+
+    def main(self):
+        """ Execute method once.
+        """
+
+        #! FIXME: commented out for dev
+        # call awg to inject the signal
+        #retcode = awg_inject(exc_channel_name, waveform,
+        #                     imminent_hwinj.schedule_time, sample_rate,
+        #                     scale_factor=scale_factor)
+        retcode = 1
+
+        # jump transition to post-injection state
+        if retcode:
+            return "ABORT"
+        else:
+            return "SUCCESS"
+
 class SUCCESS(GuardState):
     """ The SUCCESS state is an intermediary state for an injection that was
     successfully performed. There is a jump transition to the ENABLED state.
@@ -302,6 +366,12 @@ edges = (
     ("PREP", "ABORT"),
     ("CBC", "SUCCESS"),
     ("CBC", "ABORT"),
+    ("BURST", "SUCCESS"),
+    ("BURST", "ABORT"),
+    ("STOCHASTIC", "SUCCESS"),
+    ("STOCHASTIC", "ABORT"),
+    ("DETCHAR", "SUCCESS"),
+    ("DETCHAR", "ABORT"),
     ("ABORT", "EXTTRIG_ALERT"),
 )
 
