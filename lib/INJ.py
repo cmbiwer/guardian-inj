@@ -141,7 +141,7 @@ class EXTTRIG_ALERT(GuardState):
             return "ENABLED"
 
 class PREP(GuardState):
-    """ The PREP state will read the waveform file nad upload a hardware
+    """ The PREP state will read the waveform file and upload a hardware
     injection event to GraceDB upon entry.
 
     It will then continuously run PREP.run until its nearly time to inject.
