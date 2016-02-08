@@ -6,6 +6,7 @@ INJ base guardian module
 This module defines the behavior for all transient injections.
 """
 
+import os.path
 from gpstime import gpstime
 from guardian import GuardState
 from injawg import awg_inject
@@ -42,7 +43,7 @@ imminent_wait_time = 600
 awg_wait_time = 30
 
 # path to schedule file
-schedule_path = __file__ + "/schedule/schedule_1148558052.txt"
+schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
