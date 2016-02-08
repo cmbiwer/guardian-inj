@@ -14,7 +14,7 @@ from injtools import read_schedule, read_waveform
 from injupload import gracedb_upload_injection, gracedb_upload_message
 
 # name of channel to inject transient signals
-model_name = "CAL-INJ"
+model_name = "CAL-PINJX"
 exc_channel_name = model_name + "_TRANSIENT_EXC"
 
 # name of channel to check for external alerts
