@@ -135,7 +135,7 @@ def read_waveform(waveform_path, ftype="ascii"):
     waveform_path: str
         Path to the waveform file.
     ftype: str
-        Selects what method to use. Must be a string set to "ascii".
+        Selects what method to use. Currently must be a string set to "ascii".
 
     Retuns
     ----------
@@ -167,7 +167,8 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
     schedule_time: float
         GPS time injection is scheduled to start.
     ftype: str
-        Selects what method to use. Must be a string set to "sim_inspiral".
+        Selects what method to use. Currently must be a string set
+        to "sim_inspiral".
 
     Retuns
     ----------
