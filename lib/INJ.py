@@ -17,17 +17,19 @@ from injupload import gracedb_upload_injection, gracedb_upload_message
 model_name = "CAL-PINJX"
 exc_channel_name = model_name + "_TRANSIENT_EXC"
 
+# name of channel to write legacy tinj EPIC records
+type_channeL_name = model_name + "_TINJ_TYPE"
+start_channel_name = model_name + "_TINJ_START_TIME"
+end_channel_name = model_name + "_TINJ_END_TIME"
+
 # name of channel to check for external alerts
-exttrig_channel_name = model_name + "_EXTTRIG_ALERT_TIME"
+exttrig_channel_name = "CAL-INJ_EXTTRIG_ALERT_TIME"
 
 # name of channel to check if detector is locked
 lock_channel_name = "GRD-ISC_LOCK_OK"
 
 # name of channel to check if intent mode on
 obs_channel_name = "ODC-MASTER_CHANNEL_LATCH"
-
-# name of channel to write tinj type
-type_channeL_name = model_name + "_TINJ_TYPE"
 
 # seconds to wait for an external alert
 exttrig_wait_time = 3600
@@ -212,7 +214,7 @@ class PREP(GuardState):
 
                     #! FIXME: commented out for dev
                     # legacy of the old setup to set TINJ_START_TIME
-                    #ezca["TINJ_START_TIME"] = current_gps_time
+                    #ezca[start_channel_name] = current_gps_time
 
                     return hwinj.schedule_state
 
@@ -347,7 +349,7 @@ class SUCCESS(GuardState):
 
         #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
-        #ezca["TINJ_END_TIME"] = current_gps_time
+        #ezca[end_channel_name] = current_gps_time
 
         # append success message to GraceDB event
         # we block this in a try-except statment because if
@@ -380,7 +382,7 @@ class ABORT(GuardState):
 
         #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
-        #ezca["TINJ_END_TIME"] = current_gps_time
+        #ezca[end_channel_name] = current_gps_time
 
         # append success message to GraceDB event
         # we block this in a try-except statment because if
