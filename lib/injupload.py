@@ -20,6 +20,10 @@ def gracedb_upload_injection(hwinj, ifo_list,
         The HardwareInjection event to upload to GraceDB.
     ifo_list: list
         A list of the IFOs that should be appended to this event.
+    pipeline: str
+        The pipeline to tag for the GraceDB event.
+    group: str
+        The group to tag for the GraceDB event.
 
     Retuns
     ----------
@@ -35,8 +39,6 @@ def gracedb_upload_injection(hwinj, ifo_list,
     file_contents = read_metadata(hwinj.metadata_path,
                                   hwinj.waveform_start_time,
                                   hwinj.schedule_time)
-
-    print file_contents
 
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
@@ -60,6 +62,8 @@ def gracedb_upload_message(gracedb_id, message, tagname="analyst comments"):
         The GraceDB ID of the entry to be appended.
     message: str
         The message to be appended to the GraceDB ID entry.
+    tagname: str
+        The name of the tag to use for GraceDB event.
     """
 
     # begin GraceDB API
