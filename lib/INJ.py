@@ -186,12 +186,14 @@ class PREP(GuardState):
         """ Execute method in a loop.
         """
 
-        # check if external alert
-        # in the PREP state if we find an external alert we jump transition
-        # to the ABORT state first
+        # check if external alert;  in the PREP state if we find an external
+        # alert we jump transition to the ABORT state first
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
+            message = "Found external alert so aborting hardware injection."
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
             return "ABORT"
 
         # check if hardware injection is imminent enough to call awg
@@ -243,16 +245,21 @@ class CBC(GuardState):
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
-        #retcode = awg_inject(exc_channel_name, waveform,
-        #                     imminent_hwinj.schedule_time, sample_rate,
-        #                     scale_factor=scale_factor)
-        retcode = 1
+        try:
+            #retcode = awg_inject(exc_channel_name, waveform,
+            #                     imminent_hwinj.schedule_time, sample_rate,
+            #                     scale_factor=scale_factor)
+            retcode = 1
 
-        # jump transition to post-injection state
-        if retcode:
-            return "ABORT"
-        else:
+            # jump transition to post-injection state
             return "SUCCESS"
+
+        # if there was a failure then jump transition to ABORT state
+        except Expection as e:
+            message = "Error: "+e
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
+            return "ABORT"
 
 class BURST(GuardState):
     """ The BURST state will perform a burst hardware injection.
@@ -264,16 +271,21 @@ class BURST(GuardState):
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
-        #retcode = awg_inject(exc_channel_name, waveform,
-        #                     imminent_hwinj.schedule_time, sample_rate,
-        #                     scale_factor=scale_factor)
-        retcode = 1
+        try:
+            #retcode = awg_inject(exc_channel_name, waveform,
+            #                     imminent_hwinj.schedule_time, sample_rate,
+            #                     scale_factor=scale_factor)
+            retcode = 1
 
-        # jump transition to post-injection state
-        if retcode:
-            return "ABORT"
-        else:
+            # jump transition to post-injection state
             return "SUCCESS"
+
+        # if there was a failure then jump transition to ABORT state
+        except Expection as e:
+            message = "Error: "+e
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
+            return "ABORT"
 
 class STOCHASTIC(GuardState):
     """ The STOCHASTIC state will perform a stochastic hardware injection.
@@ -285,16 +297,21 @@ class STOCHASTIC(GuardState):
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
-        #retcode = awg_inject(exc_channel_name, waveform,
-        #                     imminent_hwinj.schedule_time, sample_rate,
-        #                     scale_factor=scale_factor)
-        retcode = 1
+        try:
+            #retcode = awg_inject(exc_channel_name, waveform,
+            #                     imminent_hwinj.schedule_time, sample_rate,
+            #                     scale_factor=scale_factor)
+            retcode = 1
 
-        # jump transition to post-injection state
-        if retcode:
-            return "ABORT"
-        else:
+            # jump transition to post-injection state
             return "SUCCESS"
+
+        # if there was a failure then jump transition to ABORT state
+        except Expection as e:
+            message = "Error: "+e
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
+            return "ABORT"
 
 class DETCHAR(GuardState):
     """ The DETCHAR state will perform a detector characterization
@@ -307,16 +324,21 @@ class DETCHAR(GuardState):
 
         #! FIXME: commented out for dev
         # call awg to inject the signal
-        #retcode = awg_inject(exc_channel_name, waveform,
-        #                     imminent_hwinj.schedule_time, sample_rate,
-        #                     scale_factor=scale_factor)
-        retcode = 1
+        try:
+            #retcode = awg_inject(exc_channel_name, waveform,
+            #                     imminent_hwinj.schedule_time, sample_rate,
+            #                     scale_factor=scale_factor)
+            retcode = 1
 
-        # jump transition to post-injection state
-        if retcode:
-            return "ABORT"
-        else:
+            # jump transition to post-injection state
             return "SUCCESS"
+
+        # if there was a failure then jump transition to ABORT state
+        except Expection as e:
+            message = "Error: "+e
+            log(message)
+            gracedb_upload_message(gracedb_id, message)
+            return "ABORT"
 
 class SUCCESS(GuardState):
     """ The SUCCESS state is an intermediary state for an injection that was
