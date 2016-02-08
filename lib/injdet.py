@@ -1,7 +1,7 @@
 # -*- mode: python; tab-width: 4; indent-tabs-mode: nil -*-
 
 """
-INJ tools guardian module
+INJ detector guardian module
 
 This module provides functions performing checks on detector data.
 """
