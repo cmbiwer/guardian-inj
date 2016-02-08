@@ -79,6 +79,10 @@ def read_schedule(schedule_path):
 
     If there is no meta-data file, then use None for this column.
 
+    Since each detector will have different time series to inject, we allow the
+    user to use the {ifo} substring in the waveform_path column. So that the
+    substring {ifo} is replace with the value of ezca["ifo"].
+
     Parameters
     ----------
     schedule_path: str
@@ -101,6 +105,12 @@ def read_schedule(schedule_path):
     lines = fp.readlines()
     fp.close()
 
+    # create a dict for formatting; we allow users to use the {ifo}
+    # substring substition in the waveform_path column
+    format_dict = {
+        "ifo" : ezca["ifo"]
+    }
+
     # loop over lines in schedule file
     for line in lines:
 
@@ -114,7 +124,7 @@ def read_schedule(schedule_path):
         schedule_state = data[i]; i += 1
         observation_mode = int(data[i]); i+= 1
         scale_factor = float(data[i]); i += 1
-        waveform_path = data[i]; i += 1
+        waveform_path = data[i].format(**format_dict); i += 1
         metadata_path = data[i]; i += 1
 
         # add a new HardwareInjection to list if its in the future
