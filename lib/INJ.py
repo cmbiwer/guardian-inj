@@ -211,6 +211,7 @@ class PREP(GuardState):
                     # get the current GPS time
                     current_gps_time = gpstime.tconvert("now").gps()
 
+                    #! FIXME: commented out for dev
                     # legacy of the old setup to set TINJ_START_TIME
                     #ezca["TINJ_START_TIME"] = current_gps_time
 
@@ -316,6 +317,7 @@ class SUCCESS(GuardState):
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
+        #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
         #ezca["TINJ_END_TIME"] = current_gps_time
 
@@ -342,6 +344,7 @@ class ABORT(GuardState):
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
+        #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
         #ezca["TINJ_END_TIME"] = current_gps_time
 
