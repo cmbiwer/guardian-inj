@@ -123,7 +123,7 @@ class IDLE(GuardState):
         try:
             hwinj_list = read_schedule(schedule_path)
             imminent_hwinj = check_imminent_injection(hwinj_list,
-                                                  imminent_wait_time)
+                                                      imminent_wait_time)
 
             # jump transition to PREP state if imminent hardware injection
             if imminent_hwinj:
