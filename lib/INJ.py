@@ -25,6 +25,7 @@ exc_channel_name = model_name + "_TRANSIENT_EXC"
 type_channeL_name = model_name + "_TINJ_TYPE"
 start_channel_name = model_name + "_TINJ_START_TIME"
 end_channel_name = model_name + "_TINJ_END_TIME"
+outcome_channel_name = model_name + "_TINJ_OUTCOME"
 
 # name of channel to check for external alerts
 exttrig_channel_name = "CAL-INJ_EXTTRIG_ALERT_TIME"
@@ -79,6 +80,13 @@ class DISABLED(GuardState):
     # automatically assign edges from every other state
     goto = True
 
+    def main(self):
+        """ Execute method once.
+        """
+
+        # set legacy TINJ_OUTCOME value for injections disabled or paused
+        #ezca[outcome_channel_name] = -3
+
     def run(self):
         """ Execute method in a loop.
         """
@@ -123,6 +131,7 @@ class IDLE(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
+            #ezca[outcome_channel_name] = -4
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
@@ -143,6 +152,13 @@ class IDLE(GuardState):
                     if latch == 1 and imminent_hwinj.observation_mode == 1 or \
                             latch == 0 and imminent_hwinj.observation_mode == 0:
                         return "PREP"
+
+                    # set legacy TINJ_OUTCOME value for detector not in desired
+                    # observation mode
+                    #ezca[outcome_channel_name] = -5
+
+                # set legacy TINJ_OUTCOME value for detector not locked
+                #ezca[outcome_channel_name] = -6
 
         # if there is an error reading the schedule then just retry PREP.run
         except:
@@ -384,6 +400,9 @@ class SUCCESS(GuardState):
         # use the global variables so they can used in multiple states
         global gracedb_id
 
+        # set legacy TINJ_OUTCOME value for successful injection
+        #ezca[outcome_channel_name] = 1
+
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
@@ -420,6 +439,9 @@ class ABORT(GuardState):
         # use the global variables so they can used in multiple states
         global gracedb_id
 
+        # set legacy TINJ_OUTCOME value for failed injection
+        #ezca[outcome_channel_name] = -4
+
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
@@ -441,6 +463,7 @@ class ABORT(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
+            #ezca[outcome_channel_name] = -2
             return "EXTTRIG_ALERT"
 
         return "ENABLED"
