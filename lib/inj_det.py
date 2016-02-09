@@ -4,6 +4,8 @@
 INJ detector guardian module
 
 This module provides functions performing checks on detector data.
+
+2016 - Christopher M. Biwer
 """
 
 from gpstime import gpstime

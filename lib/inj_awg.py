@@ -4,6 +4,8 @@
 INJ awg guardian module
 
 This module calls awg to inject a signal.
+
+2016 - Christopher M. Biwer
 """
 
 from awg import ArbitraryLoop

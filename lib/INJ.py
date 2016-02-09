@@ -4,6 +4,8 @@
 INJ base guardian module
 
 This module defines the behavior for all transient injections.
+
+2016 - Christopher M. Biwer
 """
 
 import os.path

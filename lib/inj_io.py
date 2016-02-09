@@ -4,6 +4,8 @@
 INJ IO guardian module
 
 This module provides functions for reading input files.
+
+2016 - Christopher M. Biwer
 """
 
 import numpy

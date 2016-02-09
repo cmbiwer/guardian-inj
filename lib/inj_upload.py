@@ -4,6 +4,8 @@
 INJ GraceDB module
 
 This module provides functions for uploading hardware injections to GraceDB.
+
+2016 - Christopher M. Biwer
 """
 
 import tempfile

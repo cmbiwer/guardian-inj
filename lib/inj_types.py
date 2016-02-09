@@ -4,6 +4,8 @@
 INJ types guardian module
 
 This module provides class for managing hardware injections.
+
+2016 - Christopher M. Biwer
 """
 
 import numpy
