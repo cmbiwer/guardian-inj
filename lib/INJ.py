@@ -440,6 +440,7 @@ class ABORT(GuardState):
 
 # define directed edges that connect guardian states
 edges = (
+    ("INIT", "DISABLED"),
     ("DISABLED", "ENABLED"),
     ("ENABLED", "IDLE"),
     ("IDLE", "EXTTRIG_ALERT"),
@@ -458,6 +459,9 @@ edges = (
     ("DETCHAR", "SUCCESS"),
     ("DETCHAR", "ABORT"),
     ("ABORT", "EXTTRIG_ALERT"),
+    ("EXTTRIG_ALERT", "ENABLED"),
+    ("SUCCESS", "ENABLED"),
+    ("ABORT", "ENABLED"),
 )
 
 
