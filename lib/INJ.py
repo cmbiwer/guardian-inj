@@ -94,8 +94,8 @@ class ENABLED(GuardState):
     # automatically assign edges from every other state
     goto = True
 
-    def run(self):
-        """ Execute method in a loop.
+    def main(self):
+        """ Execute method once.
         """
 
         return "IDLE"
@@ -187,7 +187,7 @@ class PREP(GuardState):
 
             #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
-            gracedb_id = gracedb_upload_injection(imminent_hwinj, ezca.ifo,
+            gracedb_id = gracedb_upload_injection(imminent_hwinj, [ezca.ifo],
                                                   group=imminent_hwinj.schedule_state)
 
             #! FIXME: commented out for dev
