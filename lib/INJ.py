@@ -133,7 +133,16 @@ class IDLE(GuardState):
 
             # jump transition to PREP state if imminent hardware injection
             if imminent_hwinj:
-                return "PREP"
+
+                # check if detector is locked
+                if ezca[lock_channel_name] == 1:
+
+                    # check if detector in desired observing mode and
+                    # then make a jump transition to injection type state
+                    latch = ezca[obs_channel_name]
+                    if latch == 1 and imminent_hwinj.observation_mode == 1 or \
+                            latch == 0 and imminent_hwinj.observation_mode == 0:
+                        return "PREP"
 
         # if there is an error reading the schedule then just retry PREP.run
         except:
