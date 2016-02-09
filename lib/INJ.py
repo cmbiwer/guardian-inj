@@ -51,14 +51,8 @@ schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
 
-# declare variable to hold immiment GraceDB ID
-gracedb_id = None
-
 # declare variable for imminent HardwareInjection
 imminent_hwinj = None
-
-# declare variable to hold imminent waveform time series
-waveform = None
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
@@ -200,20 +194,19 @@ class PREP(GuardState):
         """
 
         # use the global variables so they can used in multiple states
-        global gracedb_id
         global imminent_hwinj
-        global waveform
 
         # try to upload to GraceDB and read waveform
         try:
 
             # read waveform file
-            waveform = read_waveform(imminent_hwinj.waveform_path)
+            imminent_hwinj.waveform = read_waveform(imminent_hwinj.waveform_path)
 
             #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
-            gracedb_id = gracedb_upload_injection(imminent_hwinj, [ezca.ifo],
-                                                  group=imminent_hwinj.schedule_state)
+            imminent_hwinj.gracedb_id = gracedb_upload_injection(imminent_hwinj,
+                                            [ezca.ifo],
+                                            group=imminent_hwinj.schedule_state)
 
             #! FIXME: commented out for dev
             # legacy of the old setup to set TINJ_TYPE
@@ -287,13 +280,10 @@ class CBC(GuardState):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global waveform
-
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, waveform,
+            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
             #           imminent_hwinj.schedule_time, sample_rate,
             #           scale_factor=scale_factor)
 
@@ -314,13 +304,10 @@ class BURST(GuardState):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global waveform
-
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, waveform,
+            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
             #           imminent_hwinj.schedule_time, sample_rate,
             #           scale_factor=scale_factor)
 
@@ -341,13 +328,10 @@ class STOCHASTIC(GuardState):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global waveform
-
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, waveform,
+            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
             #           imminent_hwinj.schedule_time, sample_rate,
             #           scale_factor=scale_factor)
 
@@ -369,13 +353,10 @@ class DETCHAR(GuardState):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global waveform
-
         #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, waveform,
+            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
             #           imminent_hwinj.schedule_time, sample_rate,
             #           scale_factor=scale_factor)
 
@@ -397,9 +378,6 @@ class SUCCESS(GuardState):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global gracedb_id
-
         # set legacy TINJ_OUTCOME value for successful injection
         #ezca[outcome_channel_name] = 1
 
@@ -415,7 +393,7 @@ class SUCCESS(GuardState):
         # it cannot connect to GraceDB it could cause guardian to fail
         try:
             message = "This hardware injection was successful."
-            gracedb_upload_message(gracedb_id, message)
+            gracedb_upload_message(imminent_hwinj.gracedb_id, message)
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
@@ -437,7 +415,6 @@ class ABORT(GuardState):
         """
 
         # use the global variables so they can used in multiple states
-        global gracedb_id
 
         # set legacy TINJ_OUTCOME value for failed injection
         #ezca[outcome_channel_name] = -4
@@ -454,7 +431,7 @@ class ABORT(GuardState):
         # it cannot connect to GraceDB it could cause guardian to fail
         try:
             message = "This hardware injection was successful."
-            gracedb_upload_message(gracedb_id, message)
+            gracedb_upload_message(imminient_hwinj.gracedb_id, message)
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)

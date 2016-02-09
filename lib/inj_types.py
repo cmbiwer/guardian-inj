@@ -6,6 +6,7 @@ INJ types guardian module
 This module provides class for managing hardware injections.
 """
 
+import numpy
 import os.path
 from gpstime import gpstime
 
@@ -21,6 +22,9 @@ class HardwareInjection(object):
         self.scale_factor = float(scale_factor)
         self.waveform_path = waveform_path
         self.metadata_path = metadata_path
+
+        self.waveform = numpy.array([])
+        self.gracedb_id = ""
 
     def __repr__(self):
         return "<" + " ".join(map(str, [self.schedule_time, self.schedule_state])) + " HardwareInjection>"
