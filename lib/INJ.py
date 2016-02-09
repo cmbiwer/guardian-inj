@@ -431,7 +431,7 @@ class ABORT(GuardState):
         # it cannot connect to GraceDB it could cause guardian to fail
         try:
             message = "This hardware injection was successful."
-            gracedb_upload_message(imminient_hwinj.gracedb_id, message)
+            gracedb_upload_message(imminent_hwinj.gracedb_id, message)
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
