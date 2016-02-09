@@ -81,7 +81,7 @@ class DISABLED(GuardState):
         """
 
         # set legacy TINJ_OUTCOME value for injections disabled or paused
-        #ezca[outcome_channel_name] = -3
+        ezca[outcome_channel_name] = -3
 
     def run(self):
         """ Execute method in a loop.
@@ -127,7 +127,7 @@ class IDLE(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
-            #ezca[outcome_channel_name] = -4
+            ezca[outcome_channel_name] = -4
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
@@ -151,10 +151,10 @@ class IDLE(GuardState):
 
                     # set legacy TINJ_OUTCOME value for detector not in desired
                     # observation mode
-                    #ezca[outcome_channel_name] = -5
+                    ezca[outcome_channel_name] = -5
 
                 # set legacy TINJ_OUTCOME value for detector not locked
-                #ezca[outcome_channel_name] = -6
+                ezca[outcome_channel_name] = -6
 
         # if there is an error reading the schedule then just retry PREP.run
         except:
@@ -204,13 +204,11 @@ class PREP(GuardState):
             # read waveform file
             imminent_hwinj.waveform = read_waveform(imminent_hwinj.waveform_path)
 
-            #! FIXME: commented out for dev
             # upload hardware injection to GraceDB
             imminent_hwinj.gracedb_id = gracedb_upload_injection(imminent_hwinj,
                                             [ezca.ifo],
                                             group=imminent_hwinj.schedule_state)
 
-            #! FIXME: commented out for dev
             # legacy of the old setup to set TINJ_TYPE
             tinj_type_dict = {
                 "CBC" : 1,
@@ -219,7 +217,7 @@ class PREP(GuardState):
                 "DetChar" : 4,
                 "Test" : 5,
             }
-            #ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
+            ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
         # if there was an error add it to the log and ABORT the injection
         except:
@@ -254,9 +252,8 @@ class PREP(GuardState):
                     # get the current GPS time
                     current_gps_time = gpstime.tconvert("now").gps()
 
-                    #! FIXME: commented out for dev
                     # legacy of the old setup to set TINJ_START_TIME
-                    #ezca[start_channel_name] = current_gps_time
+                    ezca[start_channel_name] = current_gps_time
 
                     return hwinj.schedule_state
 
@@ -282,12 +279,11 @@ class CBC(GuardState):
         """ Execute method once.
         """
 
-        #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
-            #           imminent_hwinj.schedule_time, sample_rate,
-            #           scale_factor=scale_factor)
+            awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                       imminent_hwinj.schedule_time, sample_rate,
+                       scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -306,12 +302,11 @@ class BURST(GuardState):
         """ Execute method once.
         """
 
-        #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
-            #           imminent_hwinj.schedule_time, sample_rate,
-            #           scale_factor=scale_factor)
+            awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                       imminent_hwinj.schedule_time, sample_rate,
+                       scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -330,12 +325,11 @@ class STOCHASTIC(GuardState):
         """ Execute method once.
         """
 
-        #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
-            #           imminent_hwinj.schedule_time, sample_rate,
-            #           scale_factor=scale_factor)
+            awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                       imminent_hwinj.schedule_time, sample_rate,
+                       scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -355,12 +349,11 @@ class DETCHAR(GuardState):
         """ Execute method once.
         """
 
-        #! FIXME: commented out for dev
         # call awg to inject the signal
         try:
-            #awg_inject(exc_channel_name, imminent_hwinj.waveform,
-            #           imminent_hwinj.schedule_time, sample_rate,
-            #           scale_factor=scale_factor)
+            awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                       imminent_hwinj.schedule_time, sample_rate,
+                       scale_factor=scale_factor)
 
             # jump transition to post-injection state
             return "SUCCESS"
@@ -381,14 +374,13 @@ class SUCCESS(GuardState):
         """
 
         # set legacy TINJ_OUTCOME value for successful injection
-        #ezca[outcome_channel_name] = 1
+        ezca[outcome_channel_name] = 1
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
-        #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
-        #ezca[end_channel_name] = current_gps_time
+        ezca[end_channel_name] = current_gps_time
 
         # append success message to GraceDB event
         # we block this in a try-except statment because if
@@ -419,14 +411,13 @@ class ABORT(GuardState):
         # use the global variables so they can used in multiple states
 
         # set legacy TINJ_OUTCOME value for failed injection
-        #ezca[outcome_channel_name] = -4
+        ezca[outcome_channel_name] = -4
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
-        #! FIXME: commented out for dev
         # legacy of the old setup to set TINJ_END_TIME
-        #ezca[end_channel_name] = current_gps_time
+        ezca[end_channel_name] = current_gps_time
 
         # append success message to GraceDB event
         # we block this in a try-except statment because if
@@ -442,7 +433,7 @@ class ABORT(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
-            #ezca[outcome_channel_name] = -2
+            ezca[outcome_channel_name] = -2
             return "EXTTRIG_ALERT"
 
         return "ENABLED"
