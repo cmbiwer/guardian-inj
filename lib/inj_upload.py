@@ -28,7 +28,7 @@ def gracedb_upload_injection(hwinj, ifo_list,
     group: str
         The group to tag for the GraceDB event.
 
-    Retuns
+    Returns
     ----------
     gracedb_id: str
         The GraceDB ID string for the HardwareInjection event that was

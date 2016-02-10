@@ -10,8 +10,8 @@ This module calls awg to inject a signal.
 
 from awg import ArbitraryLoop
 
-def awg_inject(channel_name, timeseries, gps_start_time,
-               sample_rate, scale_factor=1.0, ramp_time=0):
+def awg_inject(channel_name, timeseries, gps_start_time, sample_rate,
+               scale_factor=1.0, ramp_time=0, wait=False):
     """ Injects a time series into channel.
 
     Parameters
@@ -28,11 +28,19 @@ def awg_inject(channel_name, timeseries, gps_start_time,
         Factor that will be multipled to the time series before injection.
     ramp_time: str
         Time to ramp up the signal.
+    wait: bool 
+        Whither to wait for injection to finish before proceeding.
+
+    Retuns
+    ----------
+    awg_exc: ArbitraryLoop
+        An ArbitraryLoop istance for the hardware injection.
     """
 
     # call awg and inject the time series
     awg_exc = ArbitraryLoop(channel_name, timeseries, scale=scale_factor,
                             rate=sample_rate, start=gps_start_time)
-    awg_exc.start(ramptime=ramp_time, wait=True)
+    awg_exc.start(ramptime=ramp_time, wait=wait)
     awg_exc.stop()
 
+    return awg_exc

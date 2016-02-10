@@ -224,7 +224,7 @@ class _INJECT_STATE(GuardState):
                 return "INJECT_ABORT"
 
             # call awg to inject the signal
-            self.steam = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
+            self.stream = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
                                             imminent_hwinj.schedule_time, sample_rate,
                                             scale_factor=scale_factor)
 
@@ -239,11 +239,15 @@ class _INJECT_STATE(GuardState):
         """ Execute method in a loop.
         """
 
-            # append success message to GraceDB event
-            if 1: 
-                message = "This hardware injection was successful."
-                inj_upload.gracedb_upload_message(self.gracedb_id, message)
-                return "INJECT_SUCCESS"
+            #! FIXME: Not sure what to check here to see that stream is still on
+            # check if stream has ended
+            if not self.stream.thread.isAlive():
+
+                # append success message to GraceDB event
+                if 1: 
+                    message = "This hardware injection was successful."
+                    inj_upload.gracedb_upload_message(self.gracedb_id, message)
+                    return "INJECT_SUCCESS"
 
             # append failure message to GraceDB event
             else:
