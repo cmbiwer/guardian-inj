@@ -32,7 +32,7 @@ def gracedb_upload_injection(hwinj, ifo_list,
     ----------
     gracedb_id: str
         The GraceDB ID string for the HardwareInjection event that was
-        uploaded. An empty str indicates an error uploading to GraceDB.
+        uploaded.
     """
 
     # begin GraceDB API
@@ -40,34 +40,26 @@ def gracedb_upload_injection(hwinj, ifo_list,
 
 
     # read meta-data file
-    try:
+    if hwinj.metadata_path != "None":
         file_contents = inj_io.read_metadata(hwinj.metadata_path,
                                              hwinj.waveform_start_time,
                                              hwinj.schedule_time)
 
-    # if cannot read meta-data file make an empty sim_inspiral with the
+    # if there is no meta-data file make an empty sim_inspiral with the
     # scheduled time as the geocent_end_time column
-    except:
+    else:
         file_contents = inj_io.create_empty_sim_inspiral_xml(hwinj.schedule_time)
 
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
 
     # upload event to GraceDB
-    try:
-        out = client.createEvent(group, pipeline, hwinj.metadata_path,
-                                 filecontents=file_contents, instrument=ifo_str,
-                                 source_channel="", destination_channel="")
+    out = client.createEvent(group, pipeline, hwinj.metadata_path,
+                             filecontents=file_contents, instrument=ifo_str,
+                             source_channel="", destination_channel="")
 
-        # get GraceDB ID
-        gracedb_id = out.json()["graceid"]
-
-    # if there is a GraceDB failure print to log and return empty string
-    # as GraceDB ID
-    except:
-        message = traceback.print_exc(file=sys.stdout)
-        log(message)
-        gracedb_id = ""
+    # get GraceDB ID
+    gracedb_id = out.json()["graceid"]
 
     return gracedb_id
 

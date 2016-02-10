@@ -3,7 +3,7 @@
 from inj_types import HardwareInjection
 from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
-def log(messge):
+def log(message):
     """ A replacement function for the guardian log.
     """
     print message

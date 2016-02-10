@@ -47,6 +47,8 @@ def read_schedule(schedule_path):
     user to use the {ifo} substring in the waveform_path column. So that the
     substring {ifo} is replace with the value of ezca["ifo"].
 
+    If there is no meta-data file, then write None.
+
     Parameters
     ----------
     schedule_path: str
