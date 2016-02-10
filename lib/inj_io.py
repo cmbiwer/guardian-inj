@@ -9,6 +9,7 @@ This module provides functions for reading input files.
 """
 
 import numpy
+import os.path
 import sys
 import tempfile
 import traceback
@@ -65,12 +66,6 @@ def read_schedule(schedule_path):
     lines = fp.readlines()
     fp.close()
 
-    # create a dict for formatting; we allow users to use the {ifo}
-    # substring substition in the waveform_path column
-    format_dict = {
-        "ifo" : ezca.ifo
-    }
-
     # loop over lines in schedule file
     for line in lines:
 
@@ -84,7 +79,7 @@ def read_schedule(schedule_path):
         schedule_state = data[i]; i += 1
         observation_mode = int(data[i]); i+= 1
         scale_factor = float(data[i]); i += 1
-        waveform_path = data[i].format(**format_dict); i += 1
+        waveform_path = data[i]; i += 1
         metadata_path = data[i]; i += 1
 
         # add a new HardwareInjection to list if its in the future
@@ -276,4 +271,8 @@ def create_empty_sim_inspiral_row():
 
     return row
 
+# path to schedule file
+schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
+# read schedule
+hwinj_list = read_schedule(schedule_path)

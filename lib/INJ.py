@@ -11,6 +11,7 @@ This module defines the behavior for all transient injections.
 import os.path
 import sys
 import traceback
+import inj_io
 from gpstime import gpstime
 from guardian import GuardState
 from inj_awg import awg_inject
@@ -46,9 +47,6 @@ imminent_wait_time = 600
 
 # seconds in advance to call awg
 awg_wait_time = 30
-
-# path to schedule file
-schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
@@ -87,6 +85,8 @@ class DISABLED(GuardState):
         """ Execute method in a loop.
         """
 
+        print inj_io.hwinj_list
+
         return True
 
 class IDLE(GuardState):
@@ -117,7 +117,6 @@ class IDLE(GuardState):
 
         # check schedule for imminent hardware injection
         try:
-            hwinj_list = read_schedule(schedule_path)
             imminent_hwinj = check_imminent_injection(hwinj_list,
                                                       imminent_wait_time)
 
@@ -173,7 +172,7 @@ class PREP(GuardState):
     observing mode.
 
     If it is then there will be a jump transition to the injection type's
-    state, else there will be a jump transition to the ABORT state.
+    state, else there will be a jump transition to the INJECT_ABORT state.
     """
 
     def main(self):
@@ -204,23 +203,23 @@ class PREP(GuardState):
             }
             ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
-        # if there was an error add it to the log and ABORT the injection
+        # if there was an error add it to the log and INJECT_ABORT the injection
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
-            return "ABORT"
+            return "INJECT_ABORT"
 
     def run(self):
         """ Execute method in a loop.
         """
 
         # check if external alert;  in the PREP state if we find an external
-        # alert we jump transition to the ABORT state first
+        # alert we jump transition to the INJECT_ABORT state first
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if exttrig_alert_time:
             log("Found external alert so aborting hardware injection.")
-            return "ABORT"
+            return "INJECT_ABORT"
 
         # check if hardware injection is imminent enough to call awg
         if check_imminent_injection([imminent_hwinj], awg_wait_time):
@@ -244,17 +243,17 @@ class PREP(GuardState):
 
             # if detector not locked or not desired observing mode then abort
             log("Detector is not locked or in desired observing mode.")
-            return "ABORT"
+            return "INJECT_ABORT"
 
         # get the current GPS time
         current_gps_time = gpstime.tconvert("now").gps()
 
-        # check if most imminent injection has passed and jump tp ABORT state
+        # check if most imminent injection has passed and jump tp INJECT_ABORT state
         # if it has already past; this is a safe guard against long execution
         # times when uplaoding to GraceDB or reading large waveform files
         if current_gps_time > imminent_hwinj.schedule_time:
             log("Most imminent hardware injection is in the past.")
-            return "ABORT"
+            return "INJECT_ABORT"
 
 class _INJECT_STATE(GuardState):
     """ The _INJECT_STATE state is a subclass that injects the signal into
@@ -272,13 +271,13 @@ class _INJECT_STATE(GuardState):
                        scale_factor=scale_factor)
 
             # jump transition to post-injection state
-            return "SUCCESS"
+            return "INJECT_SUCCESS"
 
-        # if there was a failure then jump transition to ABORT state
+        # if there was a failure then jump transition to INJECT_ABORT state
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
-            return "ABORT"
+            return "INJECT_ABORT"
 
 
 class CBC(_INJECT_STATE):
@@ -298,8 +297,8 @@ class DETCHAR(_INJECT_STATE):
      hardware injection.
     """
 
-class SUCCESS(GuardState):
-    """ The SUCCESS state is an intermediary state for an injection that was
+class INJECT_SUCCESS(GuardState):
+    """ The INJECT_SUCCESS state is an intermediary state for an injection that was
     successfully performed. There is a jump transition to the IDLE state.
     """
 
@@ -328,8 +327,8 @@ class SUCCESS(GuardState):
 
         return "IDLE"
 
-class ABORT(GuardState):
-    """ The ABORT state is an intermediary state for an injection that was not
+class INJECT_ABORT(GuardState):
+    """ The INJECT_ABORT state is an intermediary state for an injection that was not
     successfully performed. There is a jump transition to the IDLE state.
 
     A hardware injection could have been aborted for several reasons including
@@ -370,6 +369,43 @@ class ABORT(GuardState):
 
         return "IDLE"
 
+class RELOAD(GuardState):
+    """ The RELOAD state is requested for reloading the schdedule file.
+    There will be a jump transition to the DISABLED state after reading
+    the schedule file.
+    """
+
+    def main(self):
+        """ Execute method once.
+        """
+
+        # read schedule
+        reload(inj_io)
+
+        return "RELOAD_SUCCESS"
+
+class RELOAD_SUCCESS(GuardState):
+    """
+    """
+
+    def run(self):
+        """ Execute method in a loop.
+        """
+
+        print inj_io.hwinj_list
+
+        return True
+
+class RELOAD_FAILURE(GuardState):
+    """
+    """
+
+    def run(self):
+        """ Execute method in a loop.
+        """
+
+        return True
+
 # define directed edges that connect guardian states
 edges = (
     ("INIT", "DISABLED"),
@@ -380,19 +416,24 @@ edges = (
     ("PREP", "BURST"),
     ("PREP", "STOCHASTIC"),
     ("PREP", "DETCHAR"),
-    ("PREP", "ABORT"),
-    ("CBC", "SUCCESS"),
-    ("CBC", "ABORT"),
-    ("BURST", "SUCCESS"),
-    ("BURST", "ABORT"),
-    ("STOCHASTIC", "SUCCESS"),
-    ("STOCHASTIC", "ABORT"),
-    ("DETCHAR", "SUCCESS"),
-    ("DETCHAR", "ABORT"),
-    ("ABORT", "EXTTRIG_ALERT"),
+    ("PREP", "INJECT_ABORT"),
+    ("CBC", "INJECT_SUCCESS"),
+    ("CBC", "INJECT_ABORT"),
+    ("BURST", "INJECT_SUCCESS"),
+    ("BURST", "INJECT_ABORT"),
+    ("STOCHASTIC", "INJECT_SUCCESS"),
+    ("STOCHASTIC", "INJECT_ABORT"),
+    ("DETCHAR", "INJECT_SUCCESS"),
+    ("DETCHAR", "INJECT_ABORT"),
+    ("INJECT_ABORT", "EXTTRIG_ALERT"),
     ("EXTTRIG_ALERT", "IDLE"),
-    ("SUCCESS", "IDLE"),
-    ("ABORT", "IDLE"),
+    ("INJECT_SUCCESS", "IDLE"),
+    ("INJECT_ABORT", "IDLE"),
+    ("DISABLED", "RELOAD"),
+    ("RELOAD", "RELOAD_SUCCESS"),
+    ("RELOAD", "RELOAD_FAILURE"),
+    ("RELOAD_SUCCESS","IDLE"),
+    ("RELOAD_FAILURE","IDLE"),
 )
 
 
