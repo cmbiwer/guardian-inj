@@ -81,8 +81,6 @@ class DISABLED(GuardState):
         """ Execute method in a loop.
         """
 
-        print inj_io.hwinj_list
-
         return True
 
 class IDLE(GuardState):
@@ -364,8 +362,6 @@ class RELOAD_SUCCESS(GuardState):
     def run(self):
         """ Execute method in a loop.
         """
-
-        print inj_io.hwinj_list
 
         return True
 
