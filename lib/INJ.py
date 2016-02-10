@@ -271,98 +271,47 @@ class PREP(GuardState):
             log("Most imminent hardware injection is in the past.")
             return "ABORT"
 
-class CBC(GuardState):
+class _INJECT_STATE(GuardState):
+    """ The _INJECT_STATE state is a subclass that injects the signal into
+    the detector.
+    """
+
+    def main(self):
+        """ Execute method once.
+        """
+
+        # call awg to inject the signal
+        try:
+            awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                       imminent_hwinj.schedule_time, sample_rate,
+                       scale_factor=scale_factor)
+
+            # jump transition to post-injection state
+            return "SUCCESS"
+
+        # if there was a failure then jump transition to ABORT state
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
+            return "ABORT"
+
+
+class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
     """
 
-    def main(self):
-        """ Execute method once.
-        """
-
-        # call awg to inject the signal
-        try:
-            awg_inject(exc_channel_name, imminent_hwinj.waveform,
-                       imminent_hwinj.schedule_time, sample_rate,
-                       scale_factor=scale_factor)
-
-            # jump transition to post-injection state
-            return "SUCCESS"
-
-        # if there was a failure then jump transition to ABORT state
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            return "ABORT"
-
-class BURST(GuardState):
+class BURST(_INJECT_STATE):
     """ The BURST state will perform a burst hardware injection.
     """
 
-    def main(self):
-        """ Execute method once.
-        """
-
-        # call awg to inject the signal
-        try:
-            awg_inject(exc_channel_name, imminent_hwinj.waveform,
-                       imminent_hwinj.schedule_time, sample_rate,
-                       scale_factor=scale_factor)
-
-            # jump transition to post-injection state
-            return "SUCCESS"
-
-        # if there was a failure then jump transition to ABORT state
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            return "ABORT"
-
-class STOCHASTIC(GuardState):
+class STOCHASTIC(_INJECT_STATE):
     """ The STOCHASTIC state will perform a stochastic hardware injection.
     """
 
-    def main(self):
-        """ Execute method once.
-        """
-
-        # call awg to inject the signal
-        try:
-            awg_inject(exc_channel_name, imminent_hwinj.waveform,
-                       imminent_hwinj.schedule_time, sample_rate,
-                       scale_factor=scale_factor)
-
-            # jump transition to post-injection state
-            return "SUCCESS"
-
-        # if there was a failure then jump transition to ABORT state
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            return "ABORT"
-
-class DETCHAR(GuardState):
+class DETCHAR(_INJECT_STATE):
     """ The DETCHAR state will perform a detector characterization
      hardware injection.
     """
-
-    def main(self):
-        """ Execute method once.
-        """
-
-        # call awg to inject the signal
-        try:
-            awg_inject(exc_channel_name, imminent_hwinj.waveform,
-                       imminent_hwinj.schedule_time, sample_rate,
-                       scale_factor=scale_factor)
-
-            # jump transition to post-injection state
-            return "SUCCESS"
-
-        # if there was a failure then jump transition to ABORT state
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            return "ABORT"
 
 class SUCCESS(GuardState):
     """ The SUCCESS state is an intermediary state for an injection that was
