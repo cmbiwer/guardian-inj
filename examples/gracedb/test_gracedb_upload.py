@@ -3,6 +3,11 @@
 from inj_types import HardwareInjection
 from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
+def log(messge):
+    """ A replacement function for the guardian log.
+    """
+    print message
+
 # set some values for attributes
 schedule_time = 32.0
 schedule_state = "CBC"
