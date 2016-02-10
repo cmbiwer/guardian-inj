@@ -8,16 +8,16 @@ This module defines the behavior for all transient injections.
 2016 - Christopher M. Biwer
 """
 
+import inj_awg
+import inj_io
+import inj_upload
 import os.path
 import sys
 import traceback
 from gpstime import gpstime
 from guardian import GuardState
-from inj_awg import awg_inject
-from inj_io import read_schedule, read_waveform
 from inj_det import check_exttrig_alert
 from inj_types import check_imminent_injection
-from inj_upload import gracedb_upload_injection, gracedb_upload_message
 
 # name of channel to inject transient signals
 model_name = "CAL-PINJX"
@@ -49,9 +49,6 @@ awg_wait_time = 30
 
 # sample rate of excitation channel and waveform files
 sample_rate = 16384
-
-# declare variable for imminent HardwareInjection
-imminent_hwinj = None
 
 class INIT(GuardState):
     """ The INIT state is the first state entered when starting the Guardian
@@ -104,9 +101,6 @@ class IDLE(GuardState):
         """ Execute method in a loop.
         """
 
-        # use the global variables so they can used in multiple states
-        global imminent_hwinj
-
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
@@ -115,35 +109,39 @@ class IDLE(GuardState):
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
-        try:
-            imminent_hwinj = check_imminent_injection(hwinj_list,
-                                                      imminent_wait_time)
+        imminent_hwinj = check_imminent_injection(hwinj_list,
+                                                  imminent_wait_time)
 
-            # jump transition to PREP state if imminent hardware injection
-            if imminent_hwinj:
+        # jump transition to PREP state if imminent hardware injection
+        if imminent_hwinj:
 
-                # check if detector is locked
-                if ezca[lock_channel_name] == 1:
+            # check if detector is locked
+            if ezca[lock_channel_name] == 1:
 
-                    # check if detector in desired observing mode and
-                    # then make a jump transition to injection type state
-                    latch = ezca[obs_channel_name]
-                    if latch == 1 and imminent_hwinj.observation_mode == 1 or \
-                            latch == 0 and imminent_hwinj.observation_mode == 0:
-                        return "PREP"
+                # check if detector in desired observing mode and
+                # then make a jump transition to injection type state
+                latch = ezca[obs_channel_name]
+                if latch == 1 and imminent_hwinj.observation_mode == 1 or \
+                        latch == 0 and imminent_hwinj.observation_mode == 0:
 
-                    # set legacy TINJ_OUTCOME value for detector not in desired
-                    # observation mode
-                    ezca[outcome_channel_name] = -5
+                    # get the current GPS time
+                    current_gps_time = gpstime.tconvert("now").gps()
 
-                # set legacy TINJ_OUTCOME value for detector not locked
-                ezca[outcome_channel_name] = -6
+                    # legacy of the old setup to set TINJ_START_TIME
+                    ezca[start_channel_name] = current_gps_time
 
-        # if there is an error reading the schedule then just retry PREP.run
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            
+                    return imminent_hwinj.schedule_state
+
+                # set legacy TINJ_OUTCOME value for detector not in desired
+                # observation mode
+                log("Ignoring hardware injection since detector is not in \
+                     the desired observation mode..")
+                ezca[outcome_channel_name] = -5
+
+            # set legacy TINJ_OUTCOME value for detector not locked
+            log("Ignoring hardware injection since detector is not locked.")
+            ezca[outcome_channel_name] = -6
+
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
     if the most recent external alert is not within exttrig_wait_time seconds.
@@ -161,34 +159,45 @@ class EXTTRIG_ALERT(GuardState):
         if not exttrig_alert_time:
             return "IDLE"
 
-class PREP(GuardState):
-    """ The PREP state will read the waveform file and upload a hardware
+class _INJECT_STATE(GuardState):
+    """ The _INJECT_STATE state is a subclass that injects the signal into
+    the detector.
+
+    The _INJECT_STATE state will read the waveform file and upload a hardware
     injection event to GraceDB upon entry.
-
-    It will then continuously run PREP.run until its nearly time to inject.
-    Once the current GPS time is within awg_wait_time of the start of the
-    injection, then it will check if the detector is locked and in the desired
-    observing mode.
-
-    If it is then there will be a jump transition to the injection type's
-    state, else there will be a jump transition to the INJECT_ABORT state.
     """
+
+    # declare variable to hold the state of the injection
+    self.stream = None
+
+    # declare a str to store the GraceDB ID of the hardware injection
+    self.gracedb_id = ""
 
     def main(self):
         """ Execute method once.
         """
 
-        # use the global variables so they can used in multiple states
-        global imminent_hwinj
+        # check schedule for imminent hardware injection
+        imminent_hwinj = check_imminent_injection(inj_io.hwinj_list,
+                                                  imminent_wait_time)
+        if not imminent_hwinj or imminent_hwinj.schedule_state != __name__:
+            return "INJECT_ABORT"
 
-        # try to upload to GraceDB and read waveform
+        # try to read waveform, upload an event to GraceDB, and call awg
         try:
 
+            # create a dict for formatting; we allow users to use the {ifo}
+            # substring substition in the waveform_path column
+            format_dict = {
+                "ifo" : ezca.ifo
+            }
+
             # read waveform file
-            imminent_hwinj.waveform = read_waveform(imminent_hwinj.waveform_path)
+            waveform_path = imminent_hwinj.waveform_path.format(**format_dict)
+            waveform = inj_io.read_waveform(waveform_path)
 
             # upload hardware injection to GraceDB
-            imminent_hwinj.gracedb_id = gracedb_upload_injection(imminent_hwinj,
+            self.gracedb_id = inj_upload.gracedb_upload_injection(imminent_hwinj,
                                             [ezca.ifo],
                                             group=imminent_hwinj.schedule_state)
 
@@ -202,6 +211,21 @@ class PREP(GuardState):
             }
             ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
 
+            # get the current GPS time
+            current_gps_time = gpstime.tconvert("now").gps()
+
+            # check if most imminent injection has passed and jump tp INJECT_ABORT state
+            # if it has already past; this is a safe guard against long execution
+            # times when uploading to GraceDB or reading large waveform files
+            if current_gps_time > imminent_hwinj.schedule_time - awg_wait_time:
+                log("Most imminent hardware injection is in the past.")
+                return "INJECT_ABORT"
+
+            # call awg to inject the signal
+            self.steam = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
+                                            imminent_hwinj.schedule_time, sample_rate,
+                                            scale_factor=scale_factor)
+
         # if there was an error add it to the log and INJECT_ABORT the injection
         except:
             message = traceback.print_exc(file=sys.stdout)
@@ -212,72 +236,11 @@ class PREP(GuardState):
         """ Execute method in a loop.
         """
 
-        # check if external alert;  in the PREP state if we find an external
-        # alert we jump transition to the INJECT_ABORT state first
-        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
-                                                 exttrig_wait_time)
-        if exttrig_alert_time:
-            log("Found external alert so aborting hardware injection.")
-            return "INJECT_ABORT"
+            if 1: 
+                return "INJECT_SUCCESS"
 
-        # check if hardware injection is imminent enough to call awg
-        if check_imminent_injection([imminent_hwinj], awg_wait_time):
-
-            # check if detector is locked
-            if ezca[lock_channel_name] == 1:
-
-                # check if detector in desired observing mode and
-                # then make a jump transition to injection type state
-                latch = ezca[obs_channel_name]
-                if latch == 1 and imminent_hwinj.observation_mode == 1 or \
-                        latch == 0 and imminent_hwinj.observation_mode == 0:
-
-                    # get the current GPS time
-                    current_gps_time = gpstime.tconvert("now").gps()
-
-                    # legacy of the old setup to set TINJ_START_TIME
-                    ezca[start_channel_name] = current_gps_time
-
-                    return hwinj.schedule_state
-
-            # if detector not locked or not desired observing mode then abort
-            log("Detector is not locked or in desired observing mode.")
-            return "INJECT_ABORT"
-
-        # get the current GPS time
-        current_gps_time = gpstime.tconvert("now").gps()
-
-        # check if most imminent injection has passed and jump tp INJECT_ABORT state
-        # if it has already past; this is a safe guard against long execution
-        # times when uplaoding to GraceDB or reading large waveform files
-        if current_gps_time > imminent_hwinj.schedule_time:
-            log("Most imminent hardware injection is in the past.")
-            return "INJECT_ABORT"
-
-class _INJECT_STATE(GuardState):
-    """ The _INJECT_STATE state is a subclass that injects the signal into
-    the detector.
-    """
-
-    def main(self):
-        """ Execute method once.
-        """
-
-        # call awg to inject the signal
-        try:
-            awg_inject(exc_channel_name, imminent_hwinj.waveform,
-                       imminent_hwinj.schedule_time, sample_rate,
-                       scale_factor=scale_factor)
-
-            # jump transition to post-injection state
-            return "INJECT_SUCCESS"
-
-        # if there was a failure then jump transition to INJECT_ABORT state
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            return "INJECT_ABORT"
-
+            else:
+                return "INJECT_ABORT"
 
 class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
@@ -319,7 +282,7 @@ class INJECT_SUCCESS(GuardState):
         # it cannot connect to GraceDB it could cause guardian to fail
         try:
             message = "This hardware injection was successful."
-            gracedb_upload_message(imminent_hwinj.gracedb_id, message)
+            inj_upload.gracedb_upload_message(imminent_hwinj.gracedb_id, message)
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
@@ -354,7 +317,7 @@ class INJECT_ABORT(GuardState):
         # it cannot connect to GraceDB it could cause guardian to fail
         try:
             message = "This hardware injection was successful."
-            gracedb_upload_message(imminent_hwinj.gracedb_id, message)
+            inj_upload.gracedb_upload_message(imminent_hwinj.gracedb_id, message)
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
@@ -447,7 +410,4 @@ edges = (
     ("RELOAD_SUCCESS","IDLE"),
     ("RELOAD_FAILURE","IDLE"),
 )
-
-
-
 
