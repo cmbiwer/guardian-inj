@@ -245,6 +245,18 @@ class _INJECT_STATE(GuardState):
             inj_upload.gracedb_upload_message(self.gracedb_id, message)
             return "INJECT_SUCCESS"
 
+        # get the current GPS time
+        current_gps_time = gpstime.tconvert("now").gps()
+
+        # if stream still open after calculated end of injection data plus some
+        # padding then jump to INJECT_ABORT
+        end_time_limit = self.stream.starttime \
+                         + self.stream.rate * len(self.stream.data) \
+                         + awg_wait_time
+        if end_time_limit < current_gps_time:
+            message = "This hardware injection was aborted for running too long."
+            return "INJECT_ABORT"
+
 class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
     """
