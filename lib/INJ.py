@@ -226,7 +226,7 @@ class _INJECT_STATE(GuardState):
             # call awg to inject the signal
             self.stream = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
                                             imminent_hwinj.schedule_time, sample_rate,
-                                            scale_factor=scale_factor, wait=True)
+                                            scale_factor=scale_factor, wait=False)
 
         # if there was an error add it to the log and jump to INJECT_ABORT
         except:
@@ -255,6 +255,7 @@ class _INJECT_STATE(GuardState):
                          + self.stream.rate * len(self.stream.data) \
                          + awg_wait_time
         if end_time_limit < current_gps_time:
+            self.stream.end()
             self.stream.close()
             message = "This hardware injection was aborted for running too long."
             log(message)
