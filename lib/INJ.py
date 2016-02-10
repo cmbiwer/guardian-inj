@@ -166,10 +166,10 @@ class _INJECT_STATE(GuardState):
     """
 
     # declare variable to hold the state of the injection
-    self.stream = None
+    stream = None
 
     # declare a str to store the GraceDB ID of the hardware injection
-    self.gracedb_id = ""
+    gracedb_id = ""
 
     def main(self):
         """ Execute method once.
