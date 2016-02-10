@@ -89,21 +89,6 @@ class DISABLED(GuardState):
 
         return
 
-class ENABLED(GuardState):
-    """ The ENABLED sate is the state that is requested when moving out of
-    the DISABLED state. The ENABLED state will jump transition to the IDLE
-    state.
-    """
-
-    # automatically assign edges from every other state
-    goto = True
-
-    def main(self):
-        """ Execute method once.
-        """
-
-        return "IDLE"
-
 class IDLE(GuardState):
     """ The IDLE state continuously loops IDLE.run checking for external
     alerts and if there is an imminent hardware injection.
@@ -165,7 +150,7 @@ class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
     if the most recent external alert is not within exttrig_wait_time seconds.
     Once the external alert is far enough in the past there will be a jump
-    transition to the ENABLED state.
+    transition to the IDLE state.
     """
 
     def run(self):
@@ -176,7 +161,7 @@ class EXTTRIG_ALERT(GuardState):
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
                                                  exttrig_wait_time)
         if not exttrig_alert_time:
-            return "ENABLED"
+            return "IDLE"
 
 class PREP(GuardState):
     """ The PREP state will read the waveform file and upload a hardware
@@ -315,7 +300,7 @@ class DETCHAR(_INJECT_STATE):
 
 class SUCCESS(GuardState):
     """ The SUCCESS state is an intermediary state for an injection that was
-    successfully performed. There is a jump transition to the ENABLED state.
+    successfully performed. There is a jump transition to the IDLE state.
     """
 
     def main(self):
@@ -341,11 +326,11 @@ class SUCCESS(GuardState):
             message = traceback.print_exc(file=sys.stdout)
             log(message)
 
-        return "ENABLED"
+        return "IDLE"
 
 class ABORT(GuardState):
     """ The ABORT state is an intermediary state for an injection that was not
-    successfully performed. There is a jump transition to the ENABLED state.
+    successfully performed. There is a jump transition to the IDLE state.
 
     A hardware injection could have been aborted for several reasons including
     but not limited to incorrect types in schedule file, could not read
@@ -385,13 +370,12 @@ class ABORT(GuardState):
             ezca[outcome_channel_name] = -2
             return "EXTTRIG_ALERT"
 
-        return "ENABLED"
+        return "IDLE"
 
 # define directed edges that connect guardian states
 edges = (
     ("INIT", "DISABLED"),
-    ("DISABLED", "ENABLED"),
-    ("ENABLED", "IDLE"),
+    ("DISABLED", "IDLE"),
     ("IDLE", "EXTTRIG_ALERT"),
     ("IDLE", "PREP"),
     ("PREP", "CBC"),
@@ -408,9 +392,9 @@ edges = (
     ("DETCHAR", "SUCCESS"),
     ("DETCHAR", "ABORT"),
     ("ABORT", "EXTTRIG_ALERT"),
-    ("EXTTRIG_ALERT", "ENABLED"),
-    ("SUCCESS", "ENABLED"),
-    ("ABORT", "ENABLED"),
+    ("EXTTRIG_ALERT", "IDLE"),
+    ("SUCCESS", "IDLE"),
+    ("ABORT", "IDLE"),
 )
 
 
