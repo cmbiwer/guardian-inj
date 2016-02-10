@@ -44,7 +44,7 @@ exttrig_wait_time = 3600
 # seconds to check for an imminent hardware injection
 imminent_wait_time = 600
 
-# minimum seconds required to awg in advance
+# minimum seconds required before injection time to call awg in advance
 awg_wait_time = 30
 
 # sample rate of excitation channel and waveform files
