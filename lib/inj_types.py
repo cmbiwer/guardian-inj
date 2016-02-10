@@ -25,9 +25,6 @@ class HardwareInjection(object):
         self.waveform_path = waveform_path
         self.metadata_path = metadata_path
 
-        self.waveform = numpy.array([])
-        self.gracedb_id = ""
-
     def __repr__(self):
         return "<" + " ".join(map(str, [self.schedule_time, self.schedule_state])) + " HardwareInjection>"
 

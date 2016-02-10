@@ -44,7 +44,7 @@ exttrig_wait_time = 3600
 # seconds to check for an imminent hardware injection
 imminent_wait_time = 600
 
-# seconds in advance to call awg
+# minimum seconds required to awg in advance
 awg_wait_time = 30
 
 # sample rate of excitation channel and waveform files
@@ -179,6 +179,8 @@ class _INJECT_STATE(GuardState):
         imminent_hwinj = check_imminent_injection(inj_io.hwinj_list,
                                                   imminent_wait_time)
         if not imminent_hwinj or imminent_hwinj.schedule_state != __name__:
+            message = "Aborted: Injection no longer most imminent."
+            log(message)
             return "INJECT_ABORT"
 
         # try to read waveform, upload an event to GraceDB, and call awg
@@ -216,7 +218,9 @@ class _INJECT_STATE(GuardState):
             # if it has already past; this is a safe guard against long execution
             # times when uploading to GraceDB or reading large waveform files
             if current_gps_time > imminent_hwinj.schedule_time - awg_wait_time:
-                log("Most imminent hardware injection is in the past.")
+                message = "Aborted: Most imminent hardware injection is in the past."
+                log(message)
+                inj_upload.gracedb_upload_message(self.gracedb_id, message)
                 return "INJECT_ABORT"
 
             # call awg to inject the signal
@@ -228,16 +232,23 @@ class _INJECT_STATE(GuardState):
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
+            inj_upload.gracedb_upload_message(self.gracedb_id, message)
             return "INJECT_ABORT"
 
     def run(self):
         """ Execute method in a loop.
         """
 
+            # append success message to GraceDB event
             if 1: 
+                message = "This hardware injection was successful."
+                inj_upload.gracedb_upload_message(self.gracedb_id, message)
                 return "INJECT_SUCCESS"
 
+            # append failure message to GraceDB event
             else:
+                message = "This hardware injection was not successful."
+                inj_upload.gracedb_upload_message(self.gracedb_id, message)
                 return "INJECT_ABORT"
 
 class CBC(_INJECT_STATE):
@@ -275,16 +286,6 @@ class INJECT_SUCCESS(GuardState):
         # legacy of the old setup to set TINJ_END_TIME
         ezca[end_channel_name] = current_gps_time
 
-        # append success message to GraceDB event
-        # we block this in a try-except statment because if
-        # it cannot connect to GraceDB it could cause guardian to fail
-        try:
-            message = "This hardware injection was successful."
-            inj_upload.gracedb_upload_message(imminent_hwinj.gracedb_id, message)
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-
         return "IDLE"
 
 class INJECT_ABORT(GuardState):
@@ -309,16 +310,6 @@ class INJECT_ABORT(GuardState):
 
         # legacy of the old setup to set TINJ_END_TIME
         ezca[end_channel_name] = current_gps_time
-
-        # append success message to GraceDB event
-        # we block this in a try-except statment because if
-        # it cannot connect to GraceDB it could cause guardian to fail
-        try:
-            message = "This hardware injection was successful."
-            inj_upload.gracedb_upload_message(imminent_hwinj.gracedb_id, message)
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
 
         # check if external alert
         exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,

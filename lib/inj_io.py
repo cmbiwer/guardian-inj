@@ -148,17 +148,8 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
     if ftype == "sim_inspiral":
 
         # read XML file
-        try:
-            xmldoc = utils.load_filename(metadata_path,
-                                         contenthandler=ContentHandler)
-
-        # if cannot read the XML file then log error and return
-        # an empty sim_inspiral XML file as a string
-        except:
-            message = traceback.print_exc(file=sys.stdout)
-            log(message)
-            file_contents = create_empty_sim_inspiral_xml(schedule_time)
-            return file_contents
+        xmldoc = utils.load_filename(metadata_path,
+                                     contenthandler=ContentHandler)
 
         # get first sim_inspiral row
         sim_table = table.get_table(xmldoc,
@@ -170,9 +161,8 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         # make any assumptions about what the user is trying to do, and
         # return an empty sim_inspiral XML file as a string
         else:
-            log("sim_inspiral table has more than one row, no meta-data read")
-            file_contents = create_empty_sim_inspiral_xml(schedule_time)
-            return file_contents
+            raise IndexError("sim_inspiral table has more than one row, \
+                             no meta-data read")
 
         # keep original geocentric end time to use for RA correction
         orig_end_time = sim.geocent_end_time

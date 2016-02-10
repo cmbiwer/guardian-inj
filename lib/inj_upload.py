@@ -8,9 +8,10 @@ This module provides functions for uploading hardware injections to GraceDB.
 2016 - Christopher M. Biwer
 """
 
+import inj_io
 import tempfile
+import traceback
 import ligo.gracedb.rest as gracedb_rest
-from inj_io import read_metadata
 
 def gracedb_upload_injection(hwinj, ifo_list,
                              pipeline="HardwareInjection", group="Test"):
@@ -31,27 +32,42 @@ def gracedb_upload_injection(hwinj, ifo_list,
     ----------
     gracedb_id: str
         The GraceDB ID string for the HardwareInjection event that was
-        uploaded.
+        uploaded. An empty str indicates an error uploading to GraceDB.
     """
 
     # begin GraceDB API
     client = gracedb_rest.GraceDb()
 
-    # read metadata file
-    file_contents = read_metadata(hwinj.metadata_path,
-                                  hwinj.waveform_start_time,
-                                  hwinj.schedule_time)
+
+    # read meta-data file
+    try:
+        file_contents = inj_io.read_metadata(hwinj.metadata_path,
+                                             hwinj.waveform_start_time,
+                                             hwinj.schedule_time)
+
+    # if cannot read meta-data file make an empty sim_inspiral with the
+    # scheduled time as the geocent_end_time column
+    except:
+        file_contents = inj_io.create_empty_sim_inspiral_xml(hwinj.schedule_time)
 
     # make a comma-delimited string the IFOs
     ifo_str = ",".join(ifo_list)
 
     # upload event to GraceDB
-    out = client.createEvent(group, pipeline, hwinj.metadata_path,
-                             filecontents=file_contents, instrument=ifo_str,
-                             source_channel="", destination_channel="")
+    try:
+        out = client.createEvent(group, pipeline, hwinj.metadata_path,
+                                 filecontents=file_contents, instrument=ifo_str,
+                                 source_channel="", destination_channel="")
 
-    # get GraceDB ID
-    gracedb_id = out.json()["graceid"]
+        # get GraceDB ID
+        gracedb_id = out.json()["graceid"]
+
+    # if there is a GraceDB failure print to log and return empty string
+    # as GraceDB ID
+    except:
+        message = traceback.print_exc(file=sys.stdout)
+        log(message)
+        gracedb_id = ""
 
     return gracedb_id
 
@@ -72,5 +88,11 @@ def gracedb_upload_message(gracedb_id, message, tagname="analyst comments"):
     client = gracedb_rest.GraceDb()
 
     # append comment to GraceDB entry
-    out = client.writeLog(gracedb_id, message, tagname=tagname)
+    try:
+        out = client.writeLog(gracedb_id, message, tagname=tagname)
+
+    # if there is a GraceDB failure print to log
+    except:
+        message = traceback.print_exc(file=sys.stdout)
+        log(message)
 
