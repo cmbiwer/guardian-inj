@@ -226,7 +226,7 @@ class _INJECT_STATE(GuardState):
             # call awg to inject the signal
             self.stream = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
                                             imminent_hwinj.schedule_time, sample_rate,
-                                            scale_factor=scale_factor)
+                                            scale_factor=scale_factor, wait=True)
 
         # if there was an error add it to the log and jump to INJECT_ABORT
         except:
@@ -239,22 +239,11 @@ class _INJECT_STATE(GuardState):
         """ Execute method in a loop.
         """
 
-            #! FIXME: not sure what to check here to see that stream is still on
-            # check if stream has ended
-            if not self.stream.opened:
-
-                #! FIXME: not sure what to check here to see that stream was successful
-                # append success message to GraceDB event
-                if 1: 
-                    message = "This hardware injection was successful."
-                    inj_upload.gracedb_upload_message(self.gracedb_id, message)
-                    return "INJECT_SUCCESS"
-
-                 # append failure message to GraceDB event
-                else:
-                    message = "This hardware injection was not successful."
-                    inj_upload.gracedb_upload_message(self.gracedb_id, message)
-                    return "INJECT_ABORT"
+        # check if stream has ended and jump to INJECT_SUCCESS
+        if not self.stream.opened:
+            message = "This hardware injection was successful."
+            inj_upload.gracedb_upload_message(self.gracedb_id, message)
+            return "INJECT_SUCCESS"
 
 class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
@@ -375,27 +364,33 @@ class RELOAD_FAILURE(GuardState):
 
 # define directed edges that connect guardian states
 edges = (
+    # DISABLED jumps
     ("INIT", "DISABLED"),
     ("DISABLED", "IDLE"),
+    # EXTTRIG_ALERT jumps
     ("IDLE", "EXTTRIG_ALERT"),
-    ("IDLE", "PREP"),
-    ("PREP", "CBC"),
-    ("PREP", "BURST"),
-    ("PREP", "STOCHASTIC"),
-    ("PREP", "DETCHAR"),
-    ("PREP", "INJECT_ABORT"),
-    ("CBC", "INJECT_SUCCESS"),
-    ("CBC", "INJECT_ABORT"),
-    ("BURST", "INJECT_SUCCESS"),
-    ("BURST", "INJECT_ABORT"),
-    ("STOCHASTIC", "INJECT_SUCCESS"),
-    ("STOCHASTIC", "INJECT_ABORT"),
-    ("DETCHAR", "INJECT_SUCCESS"),
-    ("DETCHAR", "INJECT_ABORT"),
     ("INJECT_ABORT", "EXTTRIG_ALERT"),
     ("EXTTRIG_ALERT", "IDLE"),
+    # CBC jumps
+    ("IDLE", "CBC"),
+    ("CBC", "INJECT_SUCCESS"),
+    ("CBC", "INJECT_ABORT"),
+    # BURST jumps
+    ("IDLE", "BURST"),
+    ("BURST", "INJECT_SUCCESS"),
+    ("BURST", "INJECT_ABORT"),
+    # STOCHASTIC jumps
+    ("IDLE", "STOCHASTIC"),
+    ("STOCHASTIC", "INJECT_SUCCESS"),
+    ("STOCHASTIC", "INJECT_ABORT"),
+    # DETCHAR jumps
+    ("IDLE", "DETCHAR"),
+    ("DETCHAR", "INJECT_SUCCESS"),
+    ("DETCHAR", "INJECT_ABORT"),
+    # generic post-injection jumps
     ("INJECT_SUCCESS", "IDLE"),
     ("INJECT_ABORT", "IDLE"),
+    # RELOAD jumps
     ("DISABLED", "RELOAD"),
     ("RELOAD", "RELOAD_SUCCESS"),
     ("RELOAD", "RELOAD_FAILURE"),

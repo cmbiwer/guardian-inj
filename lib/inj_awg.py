@@ -11,7 +11,7 @@ This module calls awg to inject a signal.
 from awg import ArbitraryStream
 
 def awg_inject(channel_name, timeseries, gps_start_time, sample_rate,
-               scale_factor=1.0, ramp_time=0, wait=False):
+               scale_factor=1.0, ramp_time=0, wait=True):
     """ Injects a time series into channel.
 
     Parameters
