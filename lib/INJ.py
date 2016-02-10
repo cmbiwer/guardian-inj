@@ -228,7 +228,7 @@ class _INJECT_STATE(GuardState):
                                             imminent_hwinj.schedule_time, sample_rate,
                                             scale_factor=scale_factor)
 
-        # if there was an error add it to the log and INJECT_ABORT the injection
+        # if there was an error add it to the log and jump to INJECT_ABORT
         except:
             message = traceback.print_exc(file=sys.stdout)
             log(message)
@@ -239,21 +239,22 @@ class _INJECT_STATE(GuardState):
         """ Execute method in a loop.
         """
 
-            #! FIXME: Not sure what to check here to see that stream is still on
+            #! FIXME: not sure what to check here to see that stream is still on
             # check if stream has ended
-            if not self.stream.thread.isAlive():
+            if not self.stream.opened:
 
+                #! FIXME: not sure what to check here to see that stream was successful
                 # append success message to GraceDB event
                 if 1: 
                     message = "This hardware injection was successful."
                     inj_upload.gracedb_upload_message(self.gracedb_id, message)
                     return "INJECT_SUCCESS"
 
-            # append failure message to GraceDB event
-            else:
-                message = "This hardware injection was not successful."
-                inj_upload.gracedb_upload_message(self.gracedb_id, message)
-                return "INJECT_ABORT"
+                 # append failure message to GraceDB event
+                else:
+                    message = "This hardware injection was not successful."
+                    inj_upload.gracedb_upload_message(self.gracedb_id, message)
+                    return "INJECT_ABORT"
 
 class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
