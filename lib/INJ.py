@@ -241,6 +241,7 @@ class _INJECT_STATE(GuardState):
 
         # check if stream has ended and jump to INJECT_SUCCESS
         if not self.stream.opened:
+            self.stream.close()
             message = "This hardware injection was successful."
             inj_upload.gracedb_upload_message(self.gracedb_id, message)
             return "INJECT_SUCCESS"
@@ -254,7 +255,23 @@ class _INJECT_STATE(GuardState):
                          + self.stream.rate * len(self.stream.data) \
                          + awg_wait_time
         if end_time_limit < current_gps_time:
+            self.stream.close()
             message = "This hardware injection was aborted for running too long."
+            log(message)
+            return "INJECT_ABORT"
+
+        # check if external alert
+        exttrig_alert_time = check_exttrig_alert(exttrig_channel_name,
+                                                 exttrig_wait_time)
+        if exttrig_alert_time:
+
+            # close stream
+            self.stream.end()
+            self.stream.close()
+
+            # got to INJECT_ABORT state first
+            message = "This hardware injection was aborted for an external alert."
+            log(message)
             return "INJECT_ABORT"
 
 class CBC(_INJECT_STATE):
