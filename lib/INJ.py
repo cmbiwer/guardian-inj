@@ -39,6 +39,9 @@ lock_channel_name = "GRD-ISC_LOCK_OK"
 # name of channel to check if intent mode on
 obs_channel_name = "ODC-MASTER_CHANNEL_LATCH"
 
+# path to schedule file
+schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
+
 # seconds to wait for an external alert
 exttrig_wait_time = 3600
 

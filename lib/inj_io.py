@@ -9,7 +9,6 @@ This module provides functions for reading input files.
 """
 
 import numpy
-import os.path
 import sys
 import tempfile
 import traceback
@@ -271,8 +270,6 @@ def create_empty_sim_inspiral_row():
 
     return row
 
-# path to schedule file
-schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
-
 # read schedule
+from INJ import schedule_file
 hwinj_list = read_schedule(schedule_path)
