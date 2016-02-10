@@ -11,7 +11,6 @@ This module defines the behavior for all transient injections.
 import os.path
 import sys
 import traceback
-import inj_io
 from gpstime import gpstime
 from guardian import GuardState
 from inj_awg import awg_inject
@@ -38,9 +37,6 @@ lock_channel_name = "GRD-ISC_LOCK_OK"
 
 # name of channel to check if intent mode on
 obs_channel_name = "ODC-MASTER_CHANNEL_LATCH"
-
-# path to schedule file
-schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
 # seconds to wait for an external alert
 exttrig_wait_time = 3600
@@ -373,22 +369,33 @@ class INJECT_ABORT(GuardState):
         return "IDLE"
 
 class RELOAD(GuardState):
-    """ The RELOAD state is requested for reloading the schdedule file.
-    There will be a jump transition to the DISABLED state after reading
-    the schedule file.
+    """ The RELOAD state will reload the schdedule file. There will be
+    a jump transition to either the RELOAD_SUCCESS or RELOAD_FAILURE
+    state after reading the schedule file.
     """
 
     def main(self):
         """ Execute method once.
         """
 
-        # read schedule
-        reload(inj_io)
+        # read schedule and jump transition to success state
+        try:
+            reload(inj_io)
+            return "RELOAD_SUCCESS"
 
-        return "RELOAD_SUCCESS"
+        # if there was an error then jump transition to failure state
+        except:
+            message = traceback.print_exc(file=sys.stdout)
+            log(message)
+            return "RELOAD_FAILURE"
 
 class RELOAD_SUCCESS(GuardState):
-    """
+    """ The RELOAD_SUCCESS state is entered upon successfully reloading
+    the schedule file. The guardian node will remain in the
+    RELOAD_SUCCESS state until there is a request to change states.
+
+    The operator should request the RELOAD_SUCCESS to reload the
+    schedule file.
     """
 
     def run(self):
@@ -400,7 +407,9 @@ class RELOAD_SUCCESS(GuardState):
         return True
 
 class RELOAD_FAILURE(GuardState):
-    """
+    """ The RELOAD_FAILURE state is entered upon successfully reloading
+    the schedule file. The guardian node will remain in the
+    RELOAD_FAILURE state until there is a request to change states.
     """
 
     def run(self):

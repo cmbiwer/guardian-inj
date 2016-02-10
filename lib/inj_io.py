@@ -9,12 +9,16 @@ This module provides functions for reading input files.
 """
 
 import numpy
+import os.path
 import sys
 import tempfile
 import traceback
 from glue.ligolw import ilwd, ligolw, lsctables, table, utils
 from gpstime import gpstime
 from inj_types import HardwareInjection
+
+# path to schedule file
+schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
 @lsctables.use_in
 class ContentHandler(ligolw.LIGOLWContentHandler):
@@ -271,5 +275,4 @@ def create_empty_sim_inspiral_row():
     return row
 
 # read schedule
-from INJ import schedule_file
 hwinj_list = read_schedule(schedule_path)
