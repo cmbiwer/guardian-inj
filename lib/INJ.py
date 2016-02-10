@@ -87,7 +87,7 @@ class DISABLED(GuardState):
         """ Execute method in a loop.
         """
 
-        return
+        return True
 
 class IDLE(GuardState):
     """ The IDLE state continuously loops IDLE.run checking for external
@@ -341,8 +341,6 @@ class ABORT(GuardState):
     def main(self):
         """ Execute method once.
         """
-
-        # use the global variables so they can used in multiple states
 
         # set legacy TINJ_OUTCOME value for failed injection
         ezca[outcome_channel_name] = -4
