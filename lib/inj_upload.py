@@ -9,6 +9,7 @@ This module provides functions for uploading hardware injections to GraceDB.
 """
 
 import inj_io
+import sys
 import tempfile
 import traceback
 import ligo.gracedb.rest as gracedb_rest

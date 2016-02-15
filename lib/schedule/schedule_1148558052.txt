@@ -4,3 +4,5 @@
 1149080834 Test 1 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml
 1149080840 Test 1 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml
 1149080830 Test 1 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml
+1139601063 CBC 0 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml
+1139602443 CBC 0 0.0 /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.txt /home/christopher.biwer/src/guardian-inj/examples/gracedb/H1-TEST-0-0.xml

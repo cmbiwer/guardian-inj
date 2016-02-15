@@ -24,9 +24,9 @@ model_name = "CAL-PINJX"
 exc_channel_name = model_name + "_TRANSIENT_EXC"
 
 # name of channel to write legacy tinj EPIC records
-type_channeL_name = model_name + "_TINJ_TYPE"
-start_channel_name = model_name + "_TINJ_START_TIME"
-end_channel_name = model_name + "_TINJ_END_TIME"
+type_channel_name = model_name + "_TINJ_TYPE"
+start_channel_name = model_name + "_TINJ_START"
+end_channel_name = model_name + "_TINJ_ENDED"
 outcome_channel_name = model_name + "_TINJ_OUTCOME"
 
 # name of channel to check for external alerts
@@ -37,6 +37,9 @@ lock_channel_name = "GRD-ISC_LOCK_OK"
 
 # name of channel to check if intent mode on
 obs_channel_name = "ODC-MASTER_CHANNEL_LATCH"
+
+# bitmask to use to check if intent mode on
+obs_bitmask = 1
 
 # seconds to wait for an external alert
 exttrig_wait_time = 3600
@@ -67,6 +70,9 @@ class DISABLED(GuardState):
     manually. The DISABLED state will not be left unless the operator requests.
     """
 
+    # assign index for state
+    index = 10
+
     # automatically assign edges from every other state
     goto = True
 
@@ -95,6 +101,9 @@ class IDLE(GuardState):
     if it is within exttrig_wait_time seconds.
     """
 
+    # assign index for state
+    index = 20
+
     def run(self):
         """ Execute method in a loop.
         """
@@ -107,7 +116,7 @@ class IDLE(GuardState):
             return "EXTTRIG_ALERT"
 
         # check schedule for imminent hardware injection
-        imminent_hwinj = check_imminent_injection(hwinj_list,
+        imminent_hwinj = check_imminent_injection(inj_io.hwinj_list,
                                                   imminent_wait_time)
 
         # jump transition to PREP state if imminent hardware injection
@@ -118,7 +127,7 @@ class IDLE(GuardState):
 
                 # check if detector in desired observing mode and
                 # then make a jump transition to injection type state
-                latch = ezca[obs_channel_name]
+                latch = ezca[obs_channel_name] & obs_bitmask
                 if latch == 1 and imminent_hwinj.observation_mode == 1 or \
                         latch == 0 and imminent_hwinj.observation_mode == 0:
 
@@ -132,13 +141,15 @@ class IDLE(GuardState):
 
                 # set legacy TINJ_OUTCOME value for detector not in desired
                 # observation mode
-                log("Ignoring hardware injection since detector is not in \
-                     the desired observation mode..")
-                ezca[outcome_channel_name] = -5
+                else:
+                    log("Ignoring hardware injection since detector is not in " \
+                        + "the desired observation mode.")
+                    ezca[outcome_channel_name] = -5
 
             # set legacy TINJ_OUTCOME value for detector not locked
-            log("Ignoring hardware injection since detector is not locked.")
-            ezca[outcome_channel_name] = -6
+            else:
+                log("Ignoring hardware injection since detector is not locked.")
+                ezca[outcome_channel_name] = -6
 
 class EXTTRIG_ALERT(GuardState):
     """ The EXTTRIG_ALERT state continuously loops EXTTRIG_ALERT.run checking
@@ -146,6 +157,9 @@ class EXTTRIG_ALERT(GuardState):
     Once the external alert is far enough in the past there will be a jump
     transition to the IDLE state.
     """
+
+    # assign index for state
+    index = 30
 
     def run(self):
         """ Execute method in a loop.
@@ -178,7 +192,7 @@ class _INJECT_STATE(GuardState):
         # check schedule for imminent hardware injection
         imminent_hwinj = check_imminent_injection(inj_io.hwinj_list,
                                                   imminent_wait_time)
-        if not imminent_hwinj or imminent_hwinj.schedule_state != __name__:
+        if not imminent_hwinj or imminent_hwinj.schedule_state != self.name:
             message = "Aborted: Injection no longer most imminent."
             log(message)
             return "INJECT_ABORT"
@@ -194,12 +208,14 @@ class _INJECT_STATE(GuardState):
 
             # read waveform file
             waveform_path = imminent_hwinj.waveform_path.format(**format_dict)
+            log("Read waveform from " + waveform_path)
             waveform = inj_io.read_waveform(waveform_path)
 
             # upload hardware injection to GraceDB
             self.gracedb_id = inj_upload.gracedb_upload_injection(imminent_hwinj,
                                             [ezca.ifo],
                                             group=imminent_hwinj.schedule_state)
+            log("GraceDB ID is " + self.gracedb_id)
 
             # legacy of the old setup to set TINJ_TYPE
             tinj_type_dict = {
@@ -207,9 +223,8 @@ class _INJECT_STATE(GuardState):
                 "Burst" : 2,
                 "Stochastic" : 3,
                 "DetChar" : 4,
-                "Test" : 5,
             }
-            ezca[type_channel_name] = tinj_type_dict[hwinj.schedule_state]
+            ezca[type_channel_name] = tinj_type_dict[imminent_hwinj.schedule_state]
 
             # get the current GPS time
             current_gps_time = gpstime.tconvert("now").gps()
@@ -224,9 +239,11 @@ class _INJECT_STATE(GuardState):
                 return "INJECT_ABORT"
 
             # call awg to inject the signal
-            self.stream = inj_awg.awg_inject(exc_channel_name, imminent_hwinj.waveform,
+            log("Beginning call to awg")
+            self.stream = inj_awg.awg_inject(exc_channel_name, waveform,
                                             imminent_hwinj.schedule_time, sample_rate,
-                                            scale_factor=scale_factor, wait=False)
+                                            scale_factor=imminent_hwinj.scale_factor,
+                                            wait=False)
 
         # if there was an error add it to the log and jump to INJECT_ABORT
         except:
@@ -279,23 +296,38 @@ class CBC(_INJECT_STATE):
     """ The CBC state will perform a CBC hardware injection.
     """
 
+    # assign index for state
+    index = 40
+
 class BURST(_INJECT_STATE):
     """ The BURST state will perform a burst hardware injection.
     """
 
+    # assign index for state
+    index = 50
+
 class STOCHASTIC(_INJECT_STATE):
     """ The STOCHASTIC state will perform a stochastic hardware injection.
     """
+
+    # assign index for state
+    index = 60
 
 class DETCHAR(_INJECT_STATE):
     """ The DETCHAR state will perform a detector characterization
      hardware injection.
     """
 
+    # assign index for state
+    index = 70
+
 class INJECT_SUCCESS(GuardState):
     """ The INJECT_SUCCESS state is an intermediary state for an injection that was
     successfully performed. There is a jump transition to the IDLE state.
     """
+
+    # assign index for state
+    index = 80
 
     def main(self):
         """ Execute method once.
@@ -321,6 +353,9 @@ class INJECT_ABORT(GuardState):
     waveform file, an external alert was recieved in the PREP state, or the
     detector is not locked.
     """
+
+    # assign index for state
+    index = 90
 
     def main(self):
         """ Execute method once.
@@ -350,6 +385,9 @@ class RELOAD(GuardState):
     state after reading the schedule file.
     """
 
+    # assign index for state
+    index = 100
+
     def main(self):
         """ Execute method once.
         """
@@ -374,6 +412,9 @@ class RELOAD_SUCCESS(GuardState):
     schedule file.
     """
 
+    # assign index for state
+    index = 110
+
     def run(self):
         """ Execute method in a loop.
         """
@@ -385,6 +426,9 @@ class RELOAD_FAILURE(GuardState):
     the schedule file. The guardian node will remain in the
     RELOAD_FAILURE state until there is a request to change states.
     """
+
+    # assign index for state
+    index = 120
 
     def run(self):
         """ Execute method in a loop.
