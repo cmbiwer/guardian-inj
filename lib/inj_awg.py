@@ -41,6 +41,5 @@ def awg_inject(channel_name, timeseries, gps_start_time, sample_rate,
     awg_exc = ArbitraryStream(channel_name, timeseries, scale=scale_factor,
                               rate=sample_rate, start=gps_start_time)
     awg_exc.start(ramptime=ramp_time, wait=wait)
-    awg_exc.stop()
 
     return awg_exc
