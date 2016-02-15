@@ -43,6 +43,4 @@ def awg_inject(channel_name, timeseries, gps_start_time, sample_rate,
     awg_exc.start(ramptime=ramp_time, wait=wait)
     awg_exc.stop()
 
-    awg_exc = None
-
     return awg_exc
