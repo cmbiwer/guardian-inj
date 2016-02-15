@@ -377,7 +377,11 @@ class INJECT_ABORT(GuardState):
             ezca[outcome_channel_name] = -2
             return "EXTTRIG_ALERT"
 
-        return "IDLE"
+    def run(self):
+        """ Execute method in a loop.
+        """
+
+        return True
 
 class RELOAD(GuardState):
     """ The RELOAD state will reload the schdedule file. There will be
