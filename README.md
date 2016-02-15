@@ -1,6 +1,6 @@
 # guardian-inj
 
-**This project has been moved to the CDS user apps SVN for implementation.**
+**This project has been moved to the non-public CDS user apps SVN for implementation.**
 
 This is a repository for developing a Guardian node manager to perform hardware injections in LIGO.
 
