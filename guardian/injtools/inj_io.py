@@ -11,14 +11,11 @@ This module provides functions for reading input files.
 import numpy
 import os.path
 import sys
-import tempfile
+import StringIO
 import traceback
 from glue.ligolw import ilwd, ligolw, lsctables, table, utils
 from gpstime import gpstime
 from inj_types import HardwareInjection
-
-# path to schedule file
-schedule_path = os.path.dirname(__file__) + "/schedule/schedule_1148558052.txt"
 
 @lsctables.use_in
 class ContentHandler(ligolw.LIGOLWContentHandler):
@@ -28,11 +25,12 @@ class ContentHandler(ligolw.LIGOLWContentHandler):
 
 def read_schedule(schedule_path):
     """ Parses schedule file. Schedule file should be a space-delimited file
-    with the following ordered columns: GPS start time, INJ state, observing
+    with the following ordered columns: GPS start time, INJECT state, observing
     mode, scale factor, path to the waveform file, and path to a meta-data
     file.
 
-    The INJ state should be one of the INJ guardian module's states.
+    The INJECT state should be one of the INJECT_*_ACTIVE guardian states that
+    is a subclass of the _INJECT_STATE_ACTIVE state.
 
     The observing mode column should be 1 or 0. If there is a 1 the injection
     will be performed in observation mode and if there is a 0 the injection
@@ -41,11 +39,13 @@ def read_schedule(schedule_path):
     The scale factor should be a float. This is the overall factor a time
     series will be multiplied by before it is injected.
 
-    If there is no meta-data file, then use None for this column.
+    The path to the waveform file is required and the filename should have the
+    following format:
+        IFO-TAG-GPS_START_TIME-DURATION.EXT
 
-    Since each detector will have different time series to inject, we allow the
+    Since each detector may have different time series to inject, we allow the
     user to use the {ifo} substring in the waveform_path column. So that the
-    substring {ifo} is replace with the value of ezca["ifo"].
+    substring {ifo} is replaced with the IFO, eg. H1 or L1.
 
     If there is no meta-data file, then write None.
 
@@ -64,7 +64,7 @@ def read_schedule(schedule_path):
     hwinj_list = []
 
     # get the current GPS time
-    current_gps_time = gpstime.tconvert("now").gps()
+    current_gps_time = gpstime.utcnow().gps()
 
     # read lines of schedule file
     fp = open(schedule_path, "rb")
@@ -163,8 +163,8 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         # make any assumptions about what the user is trying to do, and
         # return an empty sim_inspiral XML file as a string
         else:
-            raise IndexError("sim_inspiral table has more than one row, \
-                             no meta-data read")
+            raise IndexError("sim_inspiral table has more than one row," \
+                             + "no meta-data read")
 
         # keep original geocentric end time to use for RA correction
         orig_end_time = sim.geocent_end_time
@@ -172,6 +172,9 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         # get corrected geocentric end time
         if type(sim.geocent_end_time) == int:
             dt = sim.geocent_end_time - waveform_start_time
+            if dt < 0:
+                raise ValueError("sim_inspiral geo_end_time is in the past" \
+                                 + "compared to the waveform filename")
             sim.geocent_end_time = schedule_time + dt
 
             # get corrected RA
@@ -182,15 +185,21 @@ def read_metadata(metadata_path, waveform_start_time, schedule_time=0.0,
         # get corrected H1 end time
         if type(sim.h_end_time) == int:
             dt = sim.h_end_time - waveform_start_time
+            if dt < 0:
+                raise ValueError("sim_inspiral h_end_time is in the past" \
+                                 + "compared to the waveform filename")
             sim.h_end_time = schedule_time + dt
 
         # get corrected L1 end time
         if type(sim.l_end_time) == int:
             dt = sim.l_end_time - waveform_start_time
+            if dt < 0:
+                raise ValueError("sim_inspiral h_end_time is in the past" \
+                                 + "compared to the waveform filename")
             sim.l_end_time = schedule_time + dt
 
         # get XML content as a str
-        fp = tempfile.NamedTemporaryFile()
+        fp = StringIO.StringIO()
         xmldoc.write(fp)
         fp.seek(0)
         file_contents = fp.read()
@@ -229,7 +238,7 @@ def create_empty_sim_inspiral_xml(geocent_end_time=0.0):
     sim_table.append(sim)
 
     # get XML content as a str
-    fp = tempfile.NamedTemporaryFile()
+    fp = StringIO.StringIO()
     xmldoc.write(fp)
     fp.seek(0)
     file_contents = fp.read()
@@ -266,5 +275,3 @@ def create_empty_sim_inspiral_row():
 
     return row
 
-# read schedule
-hwinj_list = read_schedule(schedule_path)

@@ -28,7 +28,7 @@ def check_exttrig_alert(exttrig_channel_name, exttrig_wait_time):
     """
 
     # get the current GPS time
-    current_gps_time = gpstime.tconvert("now").gps()
+    current_gps_time = gpstime.utcnow().gps()
 
     # read EPICs record for most recent external trigger alert GPS time
     exttrig_alert_time = ezca.read(exttrig_channel_name)

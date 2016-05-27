@@ -81,11 +81,22 @@ def gracedb_upload_message(gracedb_id, message, tagname="analyst comments"):
     client = gracedb_rest.GraceDb()
 
     # append comment to GraceDB entry
-    try:
-        out = client.writeLog(gracedb_id, message, tagname=tagname)
+    out = client.writeLog(gracedb_id, message, tagname=tagname)
 
-    # if there is a GraceDB failure print to log
-    except:
-        message = traceback.print_exc(file=sys.stdout)
-        log(message)
+def gracedb_add_label(gracedb_id, label):
+    """ Adds a message to the GraceDB entry.
+
+    Parameters
+    ----------
+    gracedb_id: str
+        The GraceDB ID of the entry to be appended.
+    label: str
+        The label to be appended to the GraceDB ID entry.
+    """
+
+    # begin GraceDB API
+    client = gracedb_rest.GraceDb()
+
+    # append comment to GraceDB entry
+    out = client.writeLabel(gracedb_id, label)
 

@@ -24,7 +24,8 @@ First clone the repository and change directory into the top level of the cloned
 
 Then change the following environment variable that will tell ``guardian`` where to find the hardware injection module:
 ```
-export GUARD_MODULE_PATH=${PWD}/lib
+export GUARD_MODULE_PATH=${PWD}/guardian
+export PYTHONPATH=${PWD}/guardian:${PYTHONPATH}
 ```
 
 Now you can run it with:
