@@ -30,5 +30,5 @@ export PYTHONPATH=${PWD}/guardian:${PYTHONPATH}
 
 Now you can run it with:
 ```
-guardian INJ
+guardian INJ_TRANS
 ```
